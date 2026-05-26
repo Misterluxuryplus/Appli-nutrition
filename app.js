@@ -1,6 +1,7 @@
 "use strict";
 
 const STORAGE_KEY = "objectif-equilibre-v1";
+const SUPPORT_MESSAGE = "Un écart n’annule pas tes efforts. Reprends simplement ton équilibre au prochain repas.";
 
 const defaultState = {
   profile: null,
@@ -24,30 +25,40 @@ const mealDescription = mealForm.elements.description;
 const cravingToggle = document.querySelector("#craving-toggle");
 const cravingOptions = document.querySelector("#craving-options");
 
+// Valeurs volontairement approximatives : l'objectif est la rapidité, pas la précision médicale.
 const foodKeywords = [
+  { words: ["pates", "pâtes", "pasta"], calories: 380 },
+  { words: ["riz"], calories: 320 },
+  { words: ["pain", "baguette", "tartine"], calories: 220 },
+  { words: ["viande", "boeuf", "steak"], calories: 330 },
+  { words: ["poulet", "dinde"], calories: 260 },
+  { words: ["oeuf", "oeufs", "œuf", "œufs", "omelette"], calories: 190 },
+  { words: ["fromage blanc", "skyr"], calories: 120 },
+  { words: ["yaourt"], calories: 110 },
+  { words: ["fromage"], calories: 190 },
+  { words: ["legumes", "légumes", "salade", "crudites", "crudités"], calories: 120 },
+  { words: ["croissant", "viennoiserie"], calories: 260 },
+  { words: ["chocolat"], calories: 300 },
+  { words: ["bonbons", "bonbon"], calories: 260 },
   { words: ["pizza"], calories: 760 },
   { words: ["burger", "hamburger"], calories: 650 },
   { words: ["frites"], calories: 420 },
-  { words: ["pates", "pasta"], calories: 380 },
-  { words: ["riz"], calories: 320 },
-  { words: ["pain", "baguette"], calories: 220 },
-  { words: ["poulet", "dinde"], calories: 260 },
-  { words: ["boeuf", "steak"], calories: 330 },
   { words: ["poisson", "saumon", "thon"], calories: 260 },
-  { words: ["oeuf", "omelette"], calories: 180 },
-  { words: ["salade", "legumes", "légumes"], calories: 120 },
   { words: ["soupe"], calories: 150 },
-  { words: ["fromage"], calories: 180 },
-  { words: ["yaourt", "skyr"], calories: 110 },
   { words: ["fruit", "pomme", "banane", "orange"], calories: 95 },
-  { words: ["chocolat", "gateau", "gâteau", "dessert"], calories: 310 },
   { words: ["huile", "sauce", "mayonnaise"], calories: 140 }
 ];
 
 const portionFactors = {
   light: 0.75,
   normal: 1,
-  large: 1.3
+  hearty: 1.3
+};
+
+const feelingLabels = {
+  hungry: "Encore faim",
+  good: "Bien",
+  full: "Trop plein"
 };
 
 const activityFactors = {
@@ -63,22 +74,35 @@ const goalAdjustments = {
   muscle: 250
 };
 
-const sportCaloriesPerKgPerMinute = {
+// Estimation kcal par kg et par minute avant modulation par intensité.
+const sportRates = {
+  strength: 0.07,
   walk: 0.05,
   bike: 0.095,
-  run: 0.13,
-  strength: 0.07,
-  swim: 0.11,
-  fitness: 0.09
+  pingpong: 0.065,
+  cardio: 0.12,
+  other: 0.07
 };
 
 const sportLabels = {
-  walk: "Marche",
-  bike: "Velo",
-  run: "Course",
   strength: "Musculation",
-  swim: "Natation",
-  fitness: "Fitness"
+  walk: "Marche",
+  bike: "Vélo",
+  pingpong: "Ping-pong",
+  cardio: "Cardio",
+  other: "Autre"
+};
+
+const intensityFactors = {
+  light: 0.8,
+  normal: 1,
+  intense: 1.25
+};
+
+const intensityLabels = {
+  light: "Intensité légère",
+  normal: "Intensité normale",
+  intense: "Intensité intense"
 };
 
 init();
@@ -127,18 +151,21 @@ function bindForms() {
     const formData = new FormData(mealForm);
     const description = String(formData.get("description")).trim();
     const portion = formData.get("portion");
+    const feeling = formData.get("feeling");
     const calories = estimateMealCalories(description, portion);
 
     state.meals.unshift({
       id: createId(),
       description,
       portion,
+      feeling,
       calories,
       createdAt: new Date().toISOString()
     });
 
     mealForm.reset();
     mealForm.elements.portion.value = "normal";
+    mealForm.elements.feeling.value = "good";
     saveState();
     render();
     showView("summary");
@@ -149,31 +176,35 @@ function bindForms() {
     const formData = new FormData(sportForm);
     const activityType = formData.get("activityType");
     const duration = Number(formData.get("duration"));
-    const calories = estimateSportCalories(activityType, duration);
+    const intensity = formData.get("intensity");
+    const calories = estimateSportCalories(activityType, duration, intensity);
 
     state.sports.unshift({
       id: createId(),
       activityType,
       duration,
+      intensity,
       calories,
       createdAt: new Date().toISOString()
     });
 
     sportForm.reset();
+    sportForm.elements.intensity.value = "normal";
     saveState();
     render();
     showView("summary");
   });
 
   resetButton.addEventListener("click", () => {
-    const confirmed = window.confirm("Effacer toutes les données locales de test ?");
+    const confirmed = window.confirm("Effacer le profil, les repas, le sport, l’historique et localStorage ?");
     if (!confirmed) return;
 
-    localStorage.removeItem(STORAGE_KEY);
+    localStorage.clear();
     state = structuredClone(defaultState);
     profileForm.reset();
     mealForm.reset();
     sportForm.reset();
+    cravingOptions.hidden = true;
     render();
     showView("home");
   });
@@ -187,7 +218,7 @@ function bindForms() {
       state.cravings.unshift({
         id: createId(),
         type: button.dataset.cravingType,
-        message: "Un écart n’annule pas tes efforts. Reprends simplement ton équilibre au prochain repas.",
+        message: SUPPORT_MESSAGE,
         createdAt: new Date().toISOString()
       });
 
@@ -211,6 +242,7 @@ function showView(viewId) {
 }
 
 function calculateProfile(profile) {
+  // Formule Mifflin-St Jeor : 10P + 6.25T - 5A + ajustement sexe.
   const sexOffset = profile.sex === "male" ? 5 : -161;
   const bmr = 10 * profile.weight + 6.25 * profile.height - 5 * profile.age + sexOffset;
   const maintenance = bmr * activityFactors[profile.activity];
@@ -226,15 +258,16 @@ function calculateProfile(profile) {
 function estimateMealCalories(description, portion) {
   const normalized = normalizeText(description);
   const matches = foodKeywords.filter((item) => item.words.some((word) => normalized.includes(normalizeText(word))));
-  const baseCalories = matches.reduce((total, item) => total + item.calories, 0) || 450;
+  const baseCalories = matches.reduce((total, item) => total + item.calories, 0) || 430;
 
   return Math.round(baseCalories * portionFactors[portion]);
 }
 
-function estimateSportCalories(activityType, duration) {
+function estimateSportCalories(activityType, duration, intensity) {
   const weight = state.profile?.weight || 70;
-  const rate = sportCaloriesPerKgPerMinute[activityType] || 0.07;
-  return Math.round(weight * duration * rate);
+  const rate = sportRates[activityType] || sportRates.other;
+  const intensityFactor = intensityFactors[intensity] || 1;
+  return Math.round(weight * duration * rate * intensityFactor);
 }
 
 function render() {
@@ -267,7 +300,7 @@ function renderMeals() {
     item.innerHTML = `
       <div>
         <strong>${escapeHtml(meal.description)}</strong>
-        <small>${portionLabel(meal.portion)} · ${formatCalories(meal.calories)}</small>
+        <small>${portionLabel(meal.portion)} · ${feelingLabels[meal.feeling] || "Bien"} · ${formatCalories(meal.calories)}</small>
       </div>
       <button type="button" aria-label="Supprimer ce repas" data-delete-meal="${meal.id}">×</button>
     `;
@@ -291,8 +324,8 @@ function renderSports() {
     const item = document.createElement("li");
     item.innerHTML = `
       <div>
-        <strong>${sportLabels[sport.activityType]}</strong>
-        <small>${sport.duration} min · ${formatCalories(sport.calories)}</small>
+        <strong>${sportLabels[sport.activityType] || "Autre"}</strong>
+        <small>${sport.duration} min · ${intensityLabels[sport.intensity] || "Intensité normale"} · ${formatCalories(sport.calories)}</small>
       </div>
       <button type="button" aria-label="Supprimer cette activité" data-delete-sport="${sport.id}">×</button>
     `;
@@ -347,10 +380,17 @@ function renderSummary() {
 }
 
 function buildKindMessage(target, balance) {
+  const lastMeal = state.meals[0];
+  const hasRecentCraving = state.cravings.length > 0;
+
   if (!target) return "Remplis ton profil pour obtenir une estimation adaptée.";
-  if (balance > 350) return "Il te reste de la marge aujourd'hui. Pense surtout à rester à l'écoute de ta faim.";
-  if (balance < -350) return "Le bilan passe au-dessus du repère aujourd'hui. Ce n'est pas grave : une tendance se regarde sur plusieurs jours.";
-  return "Tu es proche de ton repère. Continue tranquillement, sans chercher la perfection.";
+  if (hasRecentCraving) return "Un écart n’annule pas tes efforts.";
+  if (lastMeal?.portion === "hearty" || lastMeal?.feeling === "full") {
+    return "Repas un peu copieux, pas grave, équilibre simplement le prochain.";
+  }
+  if (balance >= -250 && balance <= 450) return "Bonne journée globale, continue comme ça.";
+  if (balance > 450) return "Il te reste de la marge aujourd’hui. Reste surtout à l’écoute de tes sensations.";
+  return "La journée est au-dessus du repère, ce n’est qu’une estimation. Reviens simplement à ton rythme.";
 }
 
 function restoreProfileForm() {
@@ -401,7 +441,7 @@ function setupSpeechRecognition() {
 function registerServiceWorker() {
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("service-worker.js").catch(() => {
-      // Le service worker peut échouer en ouverture locale file://, l'app reste utilisable.
+      // L'application reste utilisable si l'ouverture locale bloque le service worker.
     });
   }
 }
@@ -440,10 +480,11 @@ function normalizeText(text) {
 
 function portionLabel(portion) {
   return {
-    light: "Portion légère",
-    normal: "Portion normale",
-    large: "Grosse portion"
-  }[portion];
+    light: "Repas léger",
+    normal: "Repas normal",
+    hearty: "Repas copieux",
+    large: "Repas copieux"
+  }[portion] || "Repas normal";
 }
 
 function escapeHtml(value) {

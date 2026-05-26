@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#2f6f63" />
     <meta
       name="description"
-      content="Objectif Equilibre aide a estimer ses besoins caloriques et suivre sa journee avec bienveillance."
+      content="Objectif Équilibre aide à estimer ses besoins, ses repas et son activité avec bienveillance."
     />
     <title>Objectif Équilibre</title>
     <link rel="manifest" href="manifest.json" />
@@ -15,14 +15,14 @@
   <body>
     <div class="app-shell">
       <header class="topbar" aria-label="Navigation principale">
-        <button class="brand-button" type="button" data-view-target="home" aria-label="Retour a l'accueil">
+        <button class="brand-button" type="button" data-view-target="home" aria-label="Retour à l'accueil">
           <span class="brand-mark">OE</span>
           <span>
             <strong>Objectif Équilibre</strong>
-            <small>Estimer, suivre, ajuster</small>
+            <small>Simple, humain, ajustable</small>
           </span>
         </button>
-        <button class="icon-button" type="button" data-view-target="settings" aria-label="Reglages">
+        <button class="icon-button" type="button" data-view-target="settings" aria-label="Réglages">
           <span aria-hidden="true">⚙</span>
         </button>
       </header>
@@ -30,11 +30,10 @@
       <main>
         <section class="view is-active hero-view" id="home" aria-labelledby="home-title">
           <div class="hero-copy">
-            <p class="eyebrow">Sans jugement, sans pression</p>
-            <h1 id="home-title">Avance vers ton équilibre physique.</h1>
+            <p class="eyebrow">Sans jugement</p>
+            <h1 id="home-title">Objectif Équilibre</h1>
             <p>
-              Une PWA simple pour estimer tes calories, noter repas et sport, puis lire ton bilan de journee avec un ton
-              encourageant.
+              Avance vers ton objectif physique avec des repères simples, rapides et bienveillants.
             </p>
             <button class="primary-action" type="button" data-view-target="profile">Commencer</button>
           </div>
@@ -48,7 +47,7 @@
         <section class="view" id="profile" aria-labelledby="profile-title">
           <div class="section-heading">
             <p class="eyebrow">Profil</p>
-            <h2 id="profile-title">Tes repères de départ</h2>
+            <h2 id="profile-title">Tes repères</h2>
           </div>
 
           <form class="stack" id="profile-form">
@@ -68,7 +67,7 @@
 
             <div class="field-grid">
               <label>
-                <span>Age</span>
+                <span>Âge</span>
                 <input type="number" name="age" min="13" max="100" inputmode="numeric" placeholder="32" required />
               </label>
               <label>
@@ -90,14 +89,14 @@
               <select name="goal" required>
                 <option value="">Choisir</option>
                 <option value="lose">Perdre du poids</option>
-                <option value="cut">Secher legerement</option>
+                <option value="cut">Sécher légèrement</option>
                 <option value="maintain">Maintenir</option>
                 <option value="muscle">Prise de muscle</option>
               </select>
             </label>
 
             <fieldset>
-              <legend>Activite quotidienne</legend>
+              <legend>Activité quotidienne</legend>
               <div class="segmented-control">
                 <label>
                   <input type="radio" name="activity" value="low" required />
@@ -109,7 +108,7 @@
                 </label>
                 <label>
                   <input type="radio" name="activity" value="high" required />
-                  <span>Elevee</span>
+                  <span>Élevée</span>
                 </label>
               </div>
             </fieldset>
@@ -119,15 +118,15 @@
 
           <div class="result-panel" id="profile-results" hidden>
             <div>
-              <span>Metabolisme de base</span>
+              <span>Métabolisme de base</span>
               <strong id="bmr-result">-</strong>
             </div>
             <div>
-              <span>Maintien estime</span>
+              <span>Maintien calorique</span>
               <strong id="maintenance-result">-</strong>
             </div>
             <div>
-              <span>Objectif journalier</span>
+              <span>Objectif conseillé</span>
               <strong id="target-result">-</strong>
             </div>
           </div>
@@ -136,7 +135,7 @@
         <section class="view" id="meals" aria-labelledby="meals-title">
           <div class="section-heading">
             <p class="eyebrow">Repas</p>
-            <h2 id="meals-title">Ajouter ce que tu as mangé</h2>
+            <h2 id="meals-title">Ajouter un repas</h2>
           </div>
 
           <div class="craving-panel">
@@ -166,7 +165,7 @@
               <textarea
                 name="description"
                 rows="4"
-                placeholder="Ex : riz, poulet, legumes, yaourt"
+                placeholder="Ex : riz, poulet, légumes, yaourt"
                 required
               ></textarea>
             </label>
@@ -180,19 +179,37 @@
             </div>
 
             <fieldset>
-              <legend>Portion</legend>
+              <legend>Taille du repas</legend>
               <div class="segmented-control">
                 <label>
                   <input type="radio" name="portion" value="light" required />
-                  <span>Legere</span>
+                  <span>Léger</span>
                 </label>
                 <label>
                   <input type="radio" name="portion" value="normal" checked required />
-                  <span>Normale</span>
+                  <span>Normal</span>
                 </label>
                 <label>
-                  <input type="radio" name="portion" value="large" required />
-                  <span>Grosse</span>
+                  <input type="radio" name="portion" value="hearty" required />
+                  <span>Copieux</span>
+                </label>
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend>Sensation après repas</legend>
+              <div class="segmented-control">
+                <label>
+                  <input type="radio" name="feeling" value="hungry" required />
+                  <span>Encore faim</span>
+                </label>
+                <label>
+                  <input type="radio" name="feeling" value="good" checked required />
+                  <span>Bien</span>
+                </label>
+                <label>
+                  <input type="radio" name="feeling" value="full" required />
+                  <span>Trop plein</span>
                 </label>
               </div>
             </fieldset>
@@ -207,37 +224,55 @@
         <section class="view" id="sport" aria-labelledby="sport-title">
           <div class="section-heading">
             <p class="eyebrow">Sport</p>
-            <h2 id="sport-title">Noter une activité</h2>
+            <h2 id="sport-title">Ajouter une activité</h2>
           </div>
 
           <form class="stack" id="sport-form">
             <label>
-              <span>Type activité</span>
+              <span>Activité</span>
               <select name="activityType" required>
                 <option value="">Choisir</option>
-                <option value="walk">Marche</option>
-                <option value="bike">Velo</option>
-                <option value="run">Course</option>
                 <option value="strength">Musculation</option>
-                <option value="swim">Natation</option>
-                <option value="fitness">Fitness</option>
+                <option value="walk">Marche</option>
+                <option value="bike">Vélo</option>
+                <option value="pingpong">Ping-pong</option>
+                <option value="cardio">Cardio</option>
+                <option value="other">Autre</option>
               </select>
             </label>
 
             <label>
-              <span>Duree en minutes</span>
+              <span>Durée en minutes</span>
               <input type="number" name="duration" min="5" max="300" inputmode="numeric" placeholder="45" required />
             </label>
+
+            <fieldset>
+              <legend>Intensité</legend>
+              <div class="segmented-control">
+                <label>
+                  <input type="radio" name="intensity" value="light" required />
+                  <span>Légère</span>
+                </label>
+                <label>
+                  <input type="radio" name="intensity" value="normal" checked required />
+                  <span>Normale</span>
+                </label>
+                <label>
+                  <input type="radio" name="intensity" value="intense" required />
+                  <span>Intense</span>
+                </label>
+              </div>
+            </fieldset>
 
             <button class="primary-action" type="submit">Estimer le sport</button>
           </form>
 
-          <ul class="entry-list" id="sport-list" aria-label="Sports ajoutes"></ul>
+          <ul class="entry-list" id="sport-list" aria-label="Sports ajoutés"></ul>
         </section>
 
         <section class="view" id="summary" aria-labelledby="summary-title">
           <div class="section-heading">
-            <p class="eyebrow">Journee</p>
+            <p class="eyebrow">Journée</p>
             <h2 id="summary-title">Ton résumé</h2>
           </div>
 
@@ -247,11 +282,11 @@
               <strong id="summary-target">-</strong>
             </article>
             <article>
-              <span>Calories mangees</span>
+              <span>Calories mangées estimées</span>
               <strong id="summary-food">-</strong>
             </article>
             <article>
-              <span>Calories sport</span>
+              <span>Calories sport estimées</span>
               <strong id="summary-sport">-</strong>
             </article>
             <article>
@@ -261,20 +296,20 @@
           </div>
 
           <p class="kind-message" id="kind-message">
-            Remplis ton profil pour obtenir une estimation adaptee.
+            Remplis ton profil pour obtenir une estimation adaptée.
           </p>
         </section>
 
         <section class="view" id="settings" aria-labelledby="settings-title">
           <div class="section-heading">
-            <p class="eyebrow">Reglages</p>
-            <h2 id="settings-title">Donnees locales</h2>
+            <p class="eyebrow">Réglages</p>
+            <h2 id="settings-title">Données locales</h2>
           </div>
 
           <div class="settings-panel">
             <p>
               Les informations restent sur cet appareil via localStorage. Le bouton ci-dessous efface le profil, les
-              repas, le sport, l'historique et toutes les données locales de test.
+              repas, le sport, l’historique et toutes les données locales.
             </p>
             <button class="danger-action" type="button" id="reset-button">Reset test</button>
           </div>
