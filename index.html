@@ -145,7 +145,7 @@
         <section class="view" id="meals" aria-labelledby="meals-title">
           <div class="section-heading">
             <p class="eyebrow">Repas</p>
-            <h2 id="meals-title">Ajouter un repas</h2>
+            <h2 id="meals-title">Tes repas du jour</h2>
           </div>
 
           <div class="craving-panel">
@@ -169,7 +169,51 @@
             </div>
           </div>
 
-          <form class="stack" id="meal-form">
+          <div class="meal-moment-grid">
+            <article class="meal-moment-card meal-breakfast">
+              <div>
+                <h3>☀️ Petit déjeuner</h3>
+                <p>Commence simple, selon ta faim.</p>
+              </div>
+              <button class="primary-action" type="button" data-meal-type="breakfast">Ajouter mon petit déjeuner</button>
+              <ul class="entry-list compact-list" data-meal-list="breakfast" aria-label="Petits déjeuners ajoutés"></ul>
+            </article>
+
+            <article class="meal-moment-card meal-lunch">
+              <div>
+                <h3>🍽️ Déjeuner</h3>
+                <p>Un repas noté rapidement suffit.</p>
+              </div>
+              <button class="primary-action" type="button" data-meal-type="lunch">Ajouter mon déjeuner</button>
+              <ul class="entry-list compact-list" data-meal-list="lunch" aria-label="Déjeuners ajoutés"></ul>
+            </article>
+
+            <article class="meal-moment-card meal-dinner">
+              <div>
+                <h3>🌙 Dîner</h3>
+                <p>Garde un repère calme pour finir la journée.</p>
+              </div>
+              <button class="primary-action" type="button" data-meal-type="dinner">Ajouter mon dîner</button>
+              <ul class="entry-list compact-list" data-meal-list="dinner" aria-label="Dîners ajoutés"></ul>
+            </article>
+
+            <article class="meal-moment-card meal-snack">
+              <div>
+                <h3>🍫 Collation / grignotage</h3>
+                <p>Tu peux aussi noter les petites prises.</p>
+              </div>
+              <button class="primary-action" type="button" data-meal-type="snack">Ajouter une collation</button>
+              <ul class="entry-list compact-list" data-meal-list="snack" aria-label="Collations ajoutées"></ul>
+            </article>
+          </div>
+
+          <form class="stack meal-form-panel" id="meal-form" hidden>
+            <input type="hidden" name="mealType" value="breakfast" />
+            <div class="form-panel-heading">
+              <p class="eyebrow">Ajout rapide</p>
+              <h3 id="selected-meal-title">Ajouter mon petit déjeuner</h3>
+            </div>
+
             <label>
               <span>Décris ton repas</span>
               <textarea
@@ -227,7 +271,6 @@
             <button class="primary-action" type="submit">Estimer le repas</button>
           </form>
 
-          <ul class="entry-list" id="meal-list" aria-label="Repas ajoutés"></ul>
           <ul class="entry-list" id="craving-list" aria-label="Envies et écarts notés"></ul>
         </section>
 
@@ -309,20 +352,44 @@
             <h2 id="summary-title">Ton résumé</h2>
           </div>
 
+          <div class="water-panel">
+            <div>
+              <h3>💧 Pense à bien boire de l’eau aujourd’hui.</h3>
+              <p id="water-message">Boire aide aussi la satiété et l’énergie.</p>
+            </div>
+            <div class="quick-choice-grid water-choices" aria-label="Suivi hydratation">
+              <button type="button" data-water="0.5">0,5 L</button>
+              <button type="button" data-water="1">1 L</button>
+              <button type="button" data-water="1.5">1,5 L</button>
+              <button type="button" data-water="2">2 L</button>
+              <button type="button" data-water="2.5">2,5 L</button>
+            </div>
+          </div>
+
           <div class="summary-grid summary-simple">
-            <article>
+            <article class="summary-card-food">
               <span class="summary-icon" aria-hidden="true">🍽️</span>
-              <span>Mangé aujourd’hui</span>
+              <span>Calories mangées</span>
               <strong id="summary-food">0 kcal</strong>
             </article>
-            <article>
+            <article class="summary-card-sport">
               <span class="summary-icon" aria-hidden="true">🏃</span>
               <span>Sport</span>
               <strong id="summary-sport">0 kcal brûlées</strong>
             </article>
-            <article>
+            <article class="summary-card-steps">
+              <span class="summary-icon" aria-hidden="true">🚶</span>
+              <span>Marche / pas</span>
+              <strong id="summary-steps">0 kcal</strong>
+            </article>
+            <article class="summary-card-water">
+              <span class="summary-icon" aria-hidden="true">💧</span>
+              <span>Eau</span>
+              <strong id="summary-water">0 L</strong>
+            </article>
+            <article class="summary-card-balance">
               <span class="summary-icon" aria-hidden="true">🎯</span>
-              <span>Reste pour aujourd’hui</span>
+              <span>Reste estimé</span>
               <strong id="summary-balance">-</strong>
             </article>
           </div>

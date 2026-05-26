@@ -12,6 +12,7 @@ const defaultState = {
     count: 0,
     calories: 0
   },
+  waterLiters: 0,
   history: []
 };
 
@@ -31,6 +32,8 @@ const cravingOptions = document.querySelector("#craving-options");
 const stepsInput = document.querySelector("#steps-input");
 const stepsEstimate = document.querySelector("#steps-estimate");
 const stepsMessage = document.querySelector("#steps-message");
+const selectedMealTitle = document.querySelector("#selected-meal-title");
+const waterMessage = document.querySelector("#water-message");
 
 // Valeurs volontairement approximatives : l'objectif est la rapidité, pas la précision médicale.
 const foodKeywords = [
@@ -66,6 +69,13 @@ const feelingLabels = {
   hungry: "Encore faim",
   good: "Bien",
   full: "Trop plein"
+};
+
+const mealMomentLabels = {
+  breakfast: "Ajouter mon petit déjeuner",
+  lunch: "Ajouter mon déjeuner",
+  dinner: "Ajouter mon dîner",
+  snack: "Ajouter une collation"
 };
 
 const activityFactors = {
@@ -117,7 +127,9 @@ init();
 function init() {
   bindNavigation();
   bindForms();
+  bindMealMoments();
   bindSteps();
+  bindWater();
   setupSpeechRecognition();
   restoreProfileForm();
   render();
@@ -160,10 +172,12 @@ function bindForms() {
     const description = String(formData.get("description")).trim();
     const portion = formData.get("portion");
     const feeling = formData.get("feeling");
+    const mealType = formData.get("mealType") || mealForm.dataset.mealType || "breakfast";
     const calories = estimateMealCalories(description, portion);
 
     state.meals.unshift({
       id: createId(),
+      mealType,
       description,
       portion,
       feeling,
@@ -172,11 +186,13 @@ function bindForms() {
     });
 
     mealForm.reset();
+    mealForm.elements.mealType.value = mealType;
+    mealForm.dataset.mealType = mealType;
     mealForm.elements.portion.value = "normal";
     mealForm.elements.feeling.value = "good";
+    mealForm.hidden = true;
     saveState();
     render();
-    showView("summary");
   });
 
   sportForm.addEventListener("submit", (event) => {
@@ -214,6 +230,7 @@ function bindForms() {
     sportForm.reset();
     stepsInput.value = "";
     cravingOptions.hidden = true;
+    mealForm.hidden = true;
     render();
     showView("home");
   });
@@ -238,6 +255,20 @@ function bindForms() {
   });
 }
 
+function bindMealMoments() {
+  document.querySelectorAll("[data-meal-type]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const mealType = button.dataset.mealType;
+      mealForm.hidden = false;
+      mealForm.dataset.mealType = mealType;
+      mealForm.elements.mealType.value = mealType;
+      selectedMealTitle.textContent = mealMomentLabels[mealType];
+      mealForm.scrollIntoView({ behavior: "smooth", block: "start" });
+      mealDescription.focus();
+    });
+  });
+}
+
 function bindSteps() {
   stepsInput.addEventListener("input", () => {
     saveSteps(Number(stepsInput.value || 0));
@@ -248,6 +279,17 @@ function bindSteps() {
       const steps = Number(button.dataset.steps);
       stepsInput.value = steps;
       saveSteps(steps);
+    });
+  });
+}
+
+function bindWater() {
+  document.querySelectorAll("[data-water]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.waterLiters = Number(button.dataset.water);
+      saveState();
+      renderWater();
+      renderSummary();
     });
   });
 }
@@ -299,6 +341,7 @@ function render() {
   renderSports();
   renderCravings();
   renderSteps();
+  renderWater();
   renderSummary();
 }
 
@@ -317,10 +360,15 @@ function renderProfileResults() {
 }
 
 function renderMeals() {
-  const list = document.querySelector("#meal-list");
-  list.innerHTML = "";
+  document.querySelectorAll("[data-meal-list]").forEach((list) => {
+    list.innerHTML = "";
+  });
 
   state.meals.forEach((meal) => {
+    const mealType = meal.mealType || "breakfast";
+    const list = document.querySelector(`[data-meal-list="${mealType}"]`);
+    if (!list) return;
+
     const item = document.createElement("li");
     item.innerHTML = `
       <div>
@@ -332,7 +380,7 @@ function renderMeals() {
     list.append(item);
   });
 
-  list.querySelectorAll("[data-delete-meal]").forEach((button) => {
+  document.querySelectorAll("[data-delete-meal]").forEach((button) => {
     button.addEventListener("click", () => {
       state.meals = state.meals.filter((meal) => meal.id !== button.dataset.deleteMeal);
       saveState();
@@ -398,17 +446,31 @@ function renderSteps() {
   stepsInput.value = steps || "";
   stepsEstimate.textContent = `${steps.toLocaleString("fr-FR")} pas ≈ ${calories.toLocaleString("fr-FR")} kcal`;
   stepsMessage.textContent = steps >= 8000 ? "Chaque mouvement compte 👍" : "Même sans salle, marcher aide beaucoup.";
+  document.querySelectorAll("[data-steps]").forEach((button) => {
+    button.classList.toggle("is-active", Number(button.dataset.steps) === steps);
+  });
+}
+
+function renderWater() {
+  const liters = Number(state.waterLiters || 0);
+  document.querySelector("#summary-water").textContent = `${formatLiters(liters)}`;
+  waterMessage.textContent = liters >= 2 ? "Bonne hydratation 👍" : "Boire aide aussi la satiété et l’énergie.";
+  document.querySelectorAll("[data-water]").forEach((button) => {
+    button.classList.toggle("is-active", Number(button.dataset.water) === liters);
+  });
 }
 
 function renderSummary() {
   const target = state.profile?.calculations.target || 0;
   const food = sumCalories(state.meals);
-  const sport = sumCalories(state.sports) + Number(state.steps?.calories || 0);
-  const balance = target - food + sport;
+  const sport = sumCalories(state.sports);
+  const stepsCalories = Number(state.steps?.calories || 0);
+  const balance = target - food + sport + stepsCalories;
   const progress = target ? Math.min((food / target) * 100, 100) : 0;
 
   document.querySelector("#summary-food").textContent = formatCalories(food);
   document.querySelector("#summary-sport").textContent = `${formatCalories(sport)} brûlées`;
+  document.querySelector("#summary-steps").textContent = `${formatCalories(stepsCalories)}`;
   document.querySelector("#summary-balance").textContent = target ? formatCalories(Math.max(balance, 0)) : "-";
   document.querySelector("#progress-target-label").textContent = target ? formatCalories(target) : "Objectif du jour";
   const progressFill = document.querySelector("#calorie-progress");
@@ -526,6 +588,13 @@ function sumCalories(entries) {
 
 function formatCalories(value) {
   return `${Math.round(value).toLocaleString("fr-FR")} kcal`;
+}
+
+function formatLiters(value) {
+  return `${Number(value || 0).toLocaleString("fr-FR", {
+    minimumFractionDigits: value % 1 ? 1 : 0,
+    maximumFractionDigits: 1
+  })} L`;
 }
 
 function normalizeText(text) {

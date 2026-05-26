@@ -348,7 +348,7 @@ textarea:focus {
 .craving-panel {
   display: grid;
   gap: 12px;
-  margin-bottom: 18px;
+  margin-bottom: 22px;
 }
 
 .craving-toggle {
@@ -356,7 +356,10 @@ textarea:focus {
 }
 
 .craving-options,
-.steps-panel {
+.steps-panel,
+.water-panel,
+.meal-form-panel,
+.meal-moment-card {
   display: grid;
   gap: 14px;
   padding: 14px;
@@ -387,6 +390,64 @@ textarea:focus {
   color: var(--text);
   line-height: 1.5;
   font-weight: 750;
+}
+
+.meal-moment-grid {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.meal-moment-card {
+  gap: 16px;
+  padding: 18px;
+}
+
+.meal-moment-card h3,
+.meal-moment-card p,
+.form-panel-heading h3,
+.water-panel h3,
+.water-panel p {
+  margin: 0;
+}
+
+.meal-moment-card h3,
+.form-panel-heading h3,
+.water-panel h3 {
+  font-size: 1.2rem;
+  line-height: 1.2;
+}
+
+.meal-moment-card p,
+.water-panel p {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.meal-breakfast {
+  background: #fff9e9;
+}
+
+.meal-lunch {
+  background: #eff8f3;
+}
+
+.meal-dinner {
+  background: #f1f2ff;
+}
+
+.meal-snack {
+  background: #fff0f5;
+}
+
+.meal-form-panel {
+  margin: 0 0 20px;
+  padding: 18px;
+}
+
+.form-panel-heading {
+  display: grid;
+  gap: 4px;
 }
 
 .steps-panel {
@@ -529,11 +590,12 @@ textarea:focus {
 
 .summary-simple {
   grid-template-columns: 1fr;
+  gap: 12px;
 }
 
 .summary-simple article {
   gap: 8px;
-  min-height: 132px;
+  min-height: 126px;
   align-content: center;
 }
 
@@ -546,6 +608,42 @@ textarea:focus {
   color: var(--text);
   font-size: 2rem;
   line-height: 1;
+}
+
+.summary-card-food {
+  background: #fff7e8 !important;
+}
+
+.summary-card-sport {
+  background: #eaf7f1 !important;
+}
+
+.summary-card-steps {
+  background: #eef4ff !important;
+}
+
+.summary-card-water {
+  background: #e9f8ff !important;
+}
+
+.summary-card-balance {
+  background: #f5f0ff !important;
+}
+
+.water-panel {
+  margin-bottom: 16px;
+  background: #e9f8ff;
+}
+
+.water-choices {
+  grid-template-columns: repeat(auto-fit, minmax(86px, 1fr));
+}
+
+.water-choices button.is-active,
+.steps-choices button.is-active {
+  color: #fff;
+  background: var(--primary);
+  border-color: var(--primary);
 }
 
 .progress-panel {
@@ -588,6 +686,10 @@ textarea:focus {
   padding: 0;
   margin: 18px 0 0;
   list-style: none;
+}
+
+.compact-list {
+  margin-top: 0;
 }
 
 .entry-list li {
@@ -676,7 +778,13 @@ textarea:focus {
   }
 
   .summary-simple {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 760px) {
+  .summary-simple {
+    grid-template-columns: repeat(5, 1fr);
   }
 }
 
