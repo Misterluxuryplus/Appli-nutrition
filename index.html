@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#2f6f63" />
+    <meta
+      name="description"
+      content="Objectif Equilibre aide a estimer ses besoins caloriques et suivre sa journee avec bienveillance."
+    />
+    <title>Objectif Équilibre</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar" aria-label="Navigation principale">
+        <button class="brand-button" type="button" data-view-target="home" aria-label="Retour a l'accueil">
+          <span class="brand-mark">OE</span>
+          <span>
+            <strong>Objectif Équilibre</strong>
+            <small>Estimer, suivre, ajuster</small>
+          </span>
+        </button>
+        <button class="icon-button" type="button" data-view-target="settings" aria-label="Reglages">
+          <span aria-hidden="true">⚙</span>
+        </button>
+      </header>
+
+      <main>
+        <section class="view is-active hero-view" id="home" aria-labelledby="home-title">
+          <div class="hero-copy">
+            <p class="eyebrow">Sans jugement, sans pression</p>
+            <h1 id="home-title">Avance vers ton équilibre physique.</h1>
+            <p>
+              Une PWA simple pour estimer tes calories, noter repas et sport, puis lire ton bilan de journee avec un ton
+              encourageant.
+            </p>
+            <button class="primary-action" type="button" data-view-target="profile">Commencer</button>
+          </div>
+
+          <div class="notice" role="note">
+            Cette application donne une estimation et ne remplace pas un médecin, un diététicien ou un professionnel de
+            santé.
+          </div>
+        </section>
+
+        <section class="view" id="profile" aria-labelledby="profile-title">
+          <div class="section-heading">
+            <p class="eyebrow">Profil</p>
+            <h2 id="profile-title">Tes repères de départ</h2>
+          </div>
+
+          <form class="stack" id="profile-form">
+            <fieldset>
+              <legend>Sexe</legend>
+              <div class="segmented-control">
+                <label>
+                  <input type="radio" name="sex" value="male" required />
+                  <span>Homme</span>
+                </label>
+                <label>
+                  <input type="radio" name="sex" value="female" required />
+                  <span>Femme</span>
+                </label>
+              </div>
+            </fieldset>
+
+            <div class="field-grid">
+              <label>
+                <span>Age</span>
+                <input type="number" name="age" min="13" max="100" inputmode="numeric" placeholder="32" required />
+              </label>
+              <label>
+                <span>Taille en cm</span>
+                <input type="number" name="height" min="120" max="230" inputmode="decimal" placeholder="175" required />
+              </label>
+              <label>
+                <span>Poids en kg</span>
+                <input type="number" name="weight" min="35" max="250" step="0.1" inputmode="decimal" placeholder="72" required />
+              </label>
+              <label>
+                <span>Sport par semaine</span>
+                <input type="number" name="weeklySport" min="0" max="14" inputmode="numeric" placeholder="3" required />
+              </label>
+            </div>
+
+            <label>
+              <span>Objectif</span>
+              <select name="goal" required>
+                <option value="">Choisir</option>
+                <option value="lose">Perdre du poids</option>
+                <option value="cut">Secher legerement</option>
+                <option value="maintain">Maintenir</option>
+                <option value="muscle">Prise de muscle</option>
+              </select>
+            </label>
+
+            <fieldset>
+              <legend>Activite quotidienne</legend>
+              <div class="segmented-control">
+                <label>
+                  <input type="radio" name="activity" value="low" required />
+                  <span>Faible</span>
+                </label>
+                <label>
+                  <input type="radio" name="activity" value="medium" required />
+                  <span>Moyenne</span>
+                </label>
+                <label>
+                  <input type="radio" name="activity" value="high" required />
+                  <span>Elevee</span>
+                </label>
+              </div>
+            </fieldset>
+
+            <button class="primary-action" type="submit">Calculer mon objectif</button>
+          </form>
+
+          <div class="result-panel" id="profile-results" hidden>
+            <div>
+              <span>Metabolisme de base</span>
+              <strong id="bmr-result">-</strong>
+            </div>
+            <div>
+              <span>Maintien estime</span>
+              <strong id="maintenance-result">-</strong>
+            </div>
+            <div>
+              <span>Objectif journalier</span>
+              <strong id="target-result">-</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="meals" aria-labelledby="meals-title">
+          <div class="section-heading">
+            <p class="eyebrow">Repas</p>
+            <h2 id="meals-title">Ajouter ce que tu as mangé</h2>
+          </div>
+
+          <div class="craving-panel">
+            <button class="secondary-action craving-toggle" type="button" id="craving-toggle">
+              J’ai eu une envie / un écart
+            </button>
+
+            <div class="craving-options" id="craving-options" hidden>
+              <p class="support-message">
+                Un écart n’annule pas tes efforts. Reprends simplement ton équilibre au prochain repas.
+              </p>
+              <div class="quick-choice-grid" aria-label="Choix rapide envie ou écart">
+                <button type="button" data-craving-type="Envie de sucre">Envie de sucre</button>
+                <button type="button" data-craving-type="Chocolat / bonbons">Chocolat / bonbons</button>
+                <button type="button" data-craving-type="Grignotage">Grignotage</button>
+                <button type="button" data-craving-type="Repas trop copieux">Repas trop copieux</button>
+              </div>
+              <p class="helper-text">
+                Si ce comportement te fait souffrir ou revient souvent, un professionnel peut t’aider.
+              </p>
+            </div>
+          </div>
+
+          <form class="stack" id="meal-form">
+            <label>
+              <span>Décris ton repas</span>
+              <textarea
+                name="description"
+                rows="4"
+                placeholder="Ex : riz, poulet, legumes, yaourt"
+                required
+              ></textarea>
+            </label>
+
+            <div class="inline-actions">
+              <button class="secondary-action" type="button" id="voice-button">
+                <span aria-hidden="true">🎙</span>
+                Micro
+              </button>
+              <p class="helper-text" id="voice-status">Reconnaissance vocale si disponible.</p>
+            </div>
+
+            <fieldset>
+              <legend>Portion</legend>
+              <div class="segmented-control">
+                <label>
+                  <input type="radio" name="portion" value="light" required />
+                  <span>Legere</span>
+                </label>
+                <label>
+                  <input type="radio" name="portion" value="normal" checked required />
+                  <span>Normale</span>
+                </label>
+                <label>
+                  <input type="radio" name="portion" value="large" required />
+                  <span>Grosse</span>
+                </label>
+              </div>
+            </fieldset>
+
+            <button class="primary-action" type="submit">Estimer le repas</button>
+          </form>
+
+          <ul class="entry-list" id="meal-list" aria-label="Repas ajoutés"></ul>
+          <ul class="entry-list" id="craving-list" aria-label="Envies et écarts notés"></ul>
+        </section>
+
+        <section class="view" id="sport" aria-labelledby="sport-title">
+          <div class="section-heading">
+            <p class="eyebrow">Sport</p>
+            <h2 id="sport-title">Noter une activité</h2>
+          </div>
+
+          <form class="stack" id="sport-form">
+            <label>
+              <span>Type activité</span>
+              <select name="activityType" required>
+                <option value="">Choisir</option>
+                <option value="walk">Marche</option>
+                <option value="bike">Velo</option>
+                <option value="run">Course</option>
+                <option value="strength">Musculation</option>
+                <option value="swim">Natation</option>
+                <option value="fitness">Fitness</option>
+              </select>
+            </label>
+
+            <label>
+              <span>Duree en minutes</span>
+              <input type="number" name="duration" min="5" max="300" inputmode="numeric" placeholder="45" required />
+            </label>
+
+            <button class="primary-action" type="submit">Estimer le sport</button>
+          </form>
+
+          <ul class="entry-list" id="sport-list" aria-label="Sports ajoutes"></ul>
+        </section>
+
+        <section class="view" id="summary" aria-labelledby="summary-title">
+          <div class="section-heading">
+            <p class="eyebrow">Journee</p>
+            <h2 id="summary-title">Ton résumé</h2>
+          </div>
+
+          <div class="summary-grid">
+            <article>
+              <span>Objectif calories</span>
+              <strong id="summary-target">-</strong>
+            </article>
+            <article>
+              <span>Calories mangees</span>
+              <strong id="summary-food">-</strong>
+            </article>
+            <article>
+              <span>Calories sport</span>
+              <strong id="summary-sport">-</strong>
+            </article>
+            <article>
+              <span>Bilan restant</span>
+              <strong id="summary-balance">-</strong>
+            </article>
+          </div>
+
+          <p class="kind-message" id="kind-message">
+            Remplis ton profil pour obtenir une estimation adaptee.
+          </p>
+        </section>
+
+        <section class="view" id="settings" aria-labelledby="settings-title">
+          <div class="section-heading">
+            <p class="eyebrow">Reglages</p>
+            <h2 id="settings-title">Donnees locales</h2>
+          </div>
+
+          <div class="settings-panel">
+            <p>
+              Les informations restent sur cet appareil via localStorage. Le bouton ci-dessous efface le profil, les
+              repas, le sport, l'historique et toutes les données locales de test.
+            </p>
+            <button class="danger-action" type="button" id="reset-button">Reset test</button>
+          </div>
+        </section>
+      </main>
+
+      <nav class="bottom-nav" aria-label="Navigation de l'application">
+        <button type="button" data-view-target="profile">
+          <span aria-hidden="true">◎</span>
+          Profil
+        </button>
+        <button type="button" data-view-target="meals">
+          <span aria-hidden="true">＋</span>
+          Repas
+        </button>
+        <button type="button" data-view-target="sport">
+          <span aria-hidden="true">↗</span>
+          Sport
+        </button>
+        <button type="button" data-view-target="summary">
+          <span aria-hidden="true">◷</span>
+          Résumé
+        </button>
+      </nav>
+    </div>
+
+    <script src="app.js" defer></script>
+  </body>
+</html>
