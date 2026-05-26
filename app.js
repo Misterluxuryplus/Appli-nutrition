@@ -8,6 +8,10 @@ const defaultState = {
   meals: [],
   sports: [],
   cravings: [],
+  steps: {
+    count: 0,
+    calories: 0
+  },
   history: []
 };
 
@@ -24,6 +28,9 @@ const voiceStatus = document.querySelector("#voice-status");
 const mealDescription = mealForm.elements.description;
 const cravingToggle = document.querySelector("#craving-toggle");
 const cravingOptions = document.querySelector("#craving-options");
+const stepsInput = document.querySelector("#steps-input");
+const stepsEstimate = document.querySelector("#steps-estimate");
+const stepsMessage = document.querySelector("#steps-message");
 
 // Valeurs volontairement approximatives : l'objectif est la rapidité, pas la précision médicale.
 const foodKeywords = [
@@ -110,6 +117,7 @@ init();
 function init() {
   bindNavigation();
   bindForms();
+  bindSteps();
   setupSpeechRecognition();
   restoreProfileForm();
   render();
@@ -204,6 +212,7 @@ function bindForms() {
     profileForm.reset();
     mealForm.reset();
     sportForm.reset();
+    stepsInput.value = "";
     cravingOptions.hidden = true;
     render();
     showView("home");
@@ -225,6 +234,20 @@ function bindForms() {
       saveState();
       render();
       showView("summary");
+    });
+  });
+}
+
+function bindSteps() {
+  stepsInput.addEventListener("input", () => {
+    saveSteps(Number(stepsInput.value || 0));
+  });
+
+  document.querySelectorAll("[data-steps]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const steps = Number(button.dataset.steps);
+      stepsInput.value = steps;
+      saveSteps(steps);
     });
   });
 }
@@ -275,6 +298,7 @@ function render() {
   renderMeals();
   renderSports();
   renderCravings();
+  renderSteps();
   renderSummary();
 }
 
@@ -289,6 +313,7 @@ function renderProfileResults() {
   document.querySelector("#bmr-result").textContent = formatCalories(state.profile.calculations.bmr);
   document.querySelector("#maintenance-result").textContent = formatCalories(state.profile.calculations.maintenance);
   document.querySelector("#target-result").textContent = formatCalories(state.profile.calculations.target);
+  document.querySelector("#goal-advice").textContent = buildGoalAdvice(state.profile.goal, state.profile.calculations.target);
 }
 
 function renderMeals() {
@@ -366,31 +391,63 @@ function renderCravings() {
   });
 }
 
+function renderSteps() {
+  const steps = Number(state.steps?.count || 0);
+  const calories = Number(state.steps?.calories || 0);
+
+  stepsInput.value = steps || "";
+  stepsEstimate.textContent = `${steps.toLocaleString("fr-FR")} pas ≈ ${calories.toLocaleString("fr-FR")} kcal`;
+  stepsMessage.textContent = steps >= 8000 ? "Chaque mouvement compte 👍" : "Même sans salle, marcher aide beaucoup.";
+}
+
 function renderSummary() {
   const target = state.profile?.calculations.target || 0;
   const food = sumCalories(state.meals);
-  const sport = sumCalories(state.sports);
+  const sport = sumCalories(state.sports) + Number(state.steps?.calories || 0);
   const balance = target - food + sport;
+  const progress = target ? Math.min((food / target) * 100, 100) : 0;
 
-  document.querySelector("#summary-target").textContent = target ? formatCalories(target) : "-";
   document.querySelector("#summary-food").textContent = formatCalories(food);
-  document.querySelector("#summary-sport").textContent = formatCalories(sport);
-  document.querySelector("#summary-balance").textContent = target ? formatCalories(balance) : "-";
+  document.querySelector("#summary-sport").textContent = `${formatCalories(sport)} brûlées`;
+  document.querySelector("#summary-balance").textContent = target ? formatCalories(Math.max(balance, 0)) : "-";
+  document.querySelector("#progress-target-label").textContent = target ? formatCalories(target) : "Objectif du jour";
+  const progressFill = document.querySelector("#calorie-progress");
+  progressFill.style.width = `${progress}%`;
+  progressFill.classList.toggle("is-over", target > 0 && food > target);
   document.querySelector("#kind-message").textContent = buildKindMessage(target, balance);
 }
 
 function buildKindMessage(target, balance) {
-  const lastMeal = state.meals[0];
-  const hasRecentCraving = state.cravings.length > 0;
-
   if (!target) return "Remplis ton profil pour obtenir une estimation adaptée.";
-  if (hasRecentCraving) return "Un écart n’annule pas tes efforts.";
-  if (lastMeal?.portion === "hearty" || lastMeal?.feeling === "full") {
-    return "Repas un peu copieux, pas grave, équilibre simplement le prochain.";
-  }
-  if (balance >= -250 && balance <= 450) return "Bonne journée globale, continue comme ça.";
-  if (balance > 450) return "Il te reste de la marge aujourd’hui. Reste surtout à l’écoute de tes sensations.";
-  return "La journée est au-dessus du repère, ce n’est qu’une estimation. Reviens simplement à ton rythme.";
+  if (balance >= 0) return "Tu es encore dans ton objectif 👍";
+  return "Tu dépasses un peu aujourd’hui, ce n’est pas grave. Reprends simplement demain.";
+}
+
+function buildGoalAdvice(goal, target) {
+  const calories = formatCalories(target);
+  const messages = {
+    lose: `Pour perdre progressivement, vise environ ${calories} par jour.`,
+    cut: `Pour sécher légèrement, vise environ ${calories} par jour.`,
+    maintain: `Pour maintenir ton équilibre, vise environ ${calories} par jour.`,
+    muscle: `Pour soutenir la prise de muscle, vise environ ${calories} par jour.`
+  };
+
+  return messages[goal] || `Vise environ ${calories} par jour.`;
+}
+
+function saveSteps(steps) {
+  const count = Math.max(0, Math.round(steps || 0));
+  state.steps = {
+    count,
+    calories: calculateStepsCalories(count)
+  };
+  saveState();
+  renderSteps();
+  renderSummary();
+}
+
+function calculateStepsCalories(steps) {
+  return Math.round((steps * 0.035) / 10) * 10;
 }
 
 function restoreProfileForm() {

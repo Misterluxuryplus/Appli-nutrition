@@ -355,7 +355,8 @@ textarea:focus {
   width: 100%;
 }
 
-.craving-options {
+.craving-options,
+.steps-panel {
   display: grid;
   gap: 14px;
   padding: 14px;
@@ -388,6 +389,39 @@ textarea:focus {
   font-weight: 750;
 }
 
+.steps-panel {
+  margin-bottom: 18px;
+}
+
+.steps-heading {
+  display: grid;
+  gap: 4px;
+}
+
+.steps-heading h3,
+.steps-heading p {
+  margin: 0;
+}
+
+.steps-heading h3 {
+  font-size: 1.2rem;
+}
+
+.steps-heading p,
+.steps-estimate {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.steps-estimate {
+  margin: 0;
+  font-weight: 800;
+}
+
+.steps-choices {
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+}
+
 .result-panel,
 .summary-grid {
   display: grid;
@@ -399,17 +433,89 @@ textarea:focus {
   padding: 14px;
 }
 
-.result-panel div,
+.goal-result {
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.goal-focus {
+  display: grid;
+  gap: 10px;
+}
+
+.goal-kicker,
+.goal-line,
+.goal-advice {
+  margin: 0;
+}
+
+.goal-kicker {
+  color: var(--primary);
+  font-weight: 850;
+}
+
+.goal-line {
+  display: grid;
+  gap: 3px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.goal-line strong {
+  color: var(--text);
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.goal-advice {
+  color: var(--text);
+  line-height: 1.5;
+  font-weight: 700;
+}
+
+.details-panel {
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.details-panel summary {
+  color: var(--primary);
+  cursor: pointer;
+  font-weight: 850;
+}
+
+.detail-list {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 0;
+}
+
+.detail-list div,
 .summary-grid article {
   display: grid;
   gap: 4px;
+}
+
+.detail-list dt,
+.detail-list dd {
+  margin: 0;
+}
+
+.detail-list dt {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.detail-list dd {
+  font-weight: 850;
 }
 
 .summary-grid article {
   padding: 16px;
 }
 
-.result-panel span,
 .summary-grid span,
 .entry-list small {
   color: var(--muted);
@@ -419,6 +525,61 @@ textarea:focus {
 .result-panel strong,
 .summary-grid strong {
   font-size: 1.55rem;
+}
+
+.summary-simple {
+  grid-template-columns: 1fr;
+}
+
+.summary-simple article {
+  gap: 8px;
+  min-height: 132px;
+  align-content: center;
+}
+
+.summary-icon {
+  color: var(--text) !important;
+  font-size: 1.55rem !important;
+}
+
+.summary-simple strong {
+  color: var(--text);
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.progress-panel {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.progress-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 750;
+}
+
+.progress-track {
+  height: 14px;
+  overflow: hidden;
+  background: #e5ece8;
+  border-radius: 999px;
+}
+
+.progress-fill {
+  width: 0%;
+  height: 100%;
+  background: var(--primary);
+  border-radius: inherit;
+  transition: width 180ms ease;
+}
+
+.progress-fill.is-over {
+  background: var(--accent);
 }
 
 .entry-list {
@@ -507,6 +668,14 @@ textarea:focus {
   }
 
   .result-panel {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .goal-result {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-simple {
     grid-template-columns: repeat(3, 1fr);
   }
 }

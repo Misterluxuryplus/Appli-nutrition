@@ -116,19 +116,29 @@
             <button class="primary-action" type="submit">Calculer mon objectif</button>
           </form>
 
-          <div class="result-panel" id="profile-results" hidden>
-            <div>
-              <span>Métabolisme de base</span>
-              <strong id="bmr-result">-</strong>
-            </div>
-            <div>
-              <span>Maintien calorique</span>
-              <strong id="maintenance-result">-</strong>
-            </div>
-            <div>
-              <span>Objectif conseillé</span>
-              <strong id="target-result">-</strong>
-            </div>
+          <div class="result-panel goal-result" id="profile-results" hidden>
+            <section class="goal-focus" aria-live="polite">
+              <p class="goal-kicker">🎯 Ton objectif du jour</p>
+              <p class="goal-line">
+                Calories conseillées :
+                <strong id="target-result">-</strong><span>/jour</span>
+              </p>
+              <p class="goal-advice" id="goal-advice">Calcule ton objectif pour afficher un repère simple.</p>
+            </section>
+
+            <details class="details-panel">
+              <summary>Détails</summary>
+              <dl class="detail-list">
+                <div>
+                  <dt>Métabolisme de base</dt>
+                  <dd id="bmr-result">-</dd>
+                </div>
+                <div>
+                  <dt>Maintien estimé</dt>
+                  <dd id="maintenance-result">-</dd>
+                </div>
+              </dl>
+            </details>
           </div>
         </section>
 
@@ -227,6 +237,29 @@
             <h2 id="sport-title">Ajouter une activité</h2>
           </div>
 
+          <div class="steps-panel">
+            <div class="steps-heading">
+              <h3>🚶 Pas quotidiens</h3>
+              <p>Même sans salle, marcher aide beaucoup.</p>
+            </div>
+
+            <label>
+              <span>Nombre de pas</span>
+              <input type="number" id="steps-input" min="0" max="60000" step="100" inputmode="numeric" placeholder="5000" />
+            </label>
+
+            <div class="quick-choice-grid steps-choices" aria-label="Choix rapides de pas quotidiens">
+              <button type="button" data-steps="3000">3000 pas</button>
+              <button type="button" data-steps="5000">5000 pas</button>
+              <button type="button" data-steps="8000">8000 pas</button>
+              <button type="button" data-steps="10000">10000 pas</button>
+              <button type="button" data-steps="15000">15000 pas</button>
+            </div>
+
+            <p class="steps-estimate" id="steps-estimate">0 pas ≈ 0 kcal</p>
+            <p class="support-message" id="steps-message">Chaque mouvement compte 👍</p>
+          </div>
+
           <form class="stack" id="sport-form">
             <label>
               <span>Activité</span>
@@ -276,23 +309,32 @@
             <h2 id="summary-title">Ton résumé</h2>
           </div>
 
-          <div class="summary-grid">
+          <div class="summary-grid summary-simple">
             <article>
-              <span>Objectif calories</span>
-              <strong id="summary-target">-</strong>
+              <span class="summary-icon" aria-hidden="true">🍽️</span>
+              <span>Mangé aujourd’hui</span>
+              <strong id="summary-food">0 kcal</strong>
             </article>
             <article>
-              <span>Calories mangées estimées</span>
-              <strong id="summary-food">-</strong>
+              <span class="summary-icon" aria-hidden="true">🏃</span>
+              <span>Sport</span>
+              <strong id="summary-sport">0 kcal brûlées</strong>
             </article>
             <article>
-              <span>Calories sport estimées</span>
-              <strong id="summary-sport">-</strong>
-            </article>
-            <article>
-              <span>Bilan restant</span>
+              <span class="summary-icon" aria-hidden="true">🎯</span>
+              <span>Reste pour aujourd’hui</span>
               <strong id="summary-balance">-</strong>
             </article>
+          </div>
+
+          <div class="progress-panel" aria-label="Progression des calories mangées vers l'objectif du jour">
+            <div class="progress-meta">
+              <span>0 kcal</span>
+              <span id="progress-target-label">Objectif du jour</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" id="calorie-progress"></div>
+            </div>
           </div>
 
           <p class="kind-message" id="kind-message">
