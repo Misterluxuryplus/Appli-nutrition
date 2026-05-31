@@ -306,6 +306,10 @@ async function analyzeMealPhoto(file) {
   formData.append("image", file);
   formData.append("mealType", mealForm.elements.mealType.value || "meal");
   formData.append("portion", mealForm.elements.portion.value || "normal");
+  formData.append(
+    "instruction",
+    "Cette image contient-elle au moins un aliment ou une boisson consommable ? Si oui, identifie l'aliment ou la boisson, même s'il s'agit d'un seul fruit, d'un yaourt, d'une boisson, d'une collation ou d'un aliment emballé visible, puis estime uniquement les calories totales."
+  );
 
   const response = await fetch(PHOTO_AI_ENDPOINT, {
     method: "POST",
@@ -320,29 +324,61 @@ async function analyzeMealPhoto(file) {
 
 function normalizePhotoAiResult(result) {
   const confidence = result.confidenceScore ?? result.confidence ?? result.foodConfidence ?? "medium";
-  const hasFood = result.hasFood ?? result.foodDetected ?? result.containsFood;
+  const hasFood = result.hasFood ?? result.foodDetected ?? result.containsFood ?? result.containsEdibleItem ?? result.hasConsumable;
   const calories = Math.max(0, Math.round(Number(result.calories || result.estimatedCalories || 0)));
+  const rawDescription = String(result.description || result.mealDescription || result.foodName || result.detectedFood || "").trim();
+  const description = rawDescription || "Aliment ou boisson détecté";
 
   if (hasFood === false || result.status === "no_food") {
     return { status: "no_food" };
   }
 
-  if (hasFood !== true || isLowConfidence(confidence) || !calories) {
+  if (hasFood !== true || isLowConfidence(confidence, description) || !calories) {
     return { status: "low_confidence" };
   }
 
   return {
     status: "detected",
     calories,
-    description: String(result.description || result.mealDescription || "Repas détecté"),
+    description,
     portion: result.portion || mealForm.elements.portion.value || "normal",
     confidence
   };
 }
 
-function isLowConfidence(confidence) {
-  if (typeof confidence === "number") return confidence < 0.6;
+function isLowConfidence(confidence, description = "") {
+  if (isSimpleFoodDescription(description)) {
+    if (typeof confidence === "number") return confidence < 0.4;
+    return ["unknown"].includes(String(confidence).toLowerCase());
+  }
+
+  if (typeof confidence === "number") return confidence < 0.55;
   return ["low", "faible", "uncertain", "unknown"].includes(String(confidence).toLowerCase());
+}
+
+function isSimpleFoodDescription(description) {
+  const normalized = normalizeText(description);
+  const simpleFoods = [
+    "poire",
+    "pomme",
+    "banane",
+    "orange",
+    "fruit",
+    "skyr",
+    "fromage blanc",
+    "yaourt",
+    "pain",
+    "riz",
+    "pates",
+    "salade",
+    "jus",
+    "eau",
+    "cafe",
+    "the",
+    "boisson"
+  ];
+
+  return simpleFoods.some((food) => normalized.includes(food));
 }
 
 function renderPhotoAnalysisState(analysis) {
@@ -372,7 +408,7 @@ function renderPhotoInvalid() {
   currentPhotoAnalysis = null;
   photoStatus.textContent = "Photo non conforme.";
   photoFeedbackTitle.textContent = "❌ Photo non conforme";
-  photoFeedbackMessage.textContent = "Nous ne détectons pas clairement d'aliment sur cette photo. Merci de photographier un repas, un aliment ou une boisson afin d'obtenir une estimation des calories.";
+  photoFeedbackMessage.textContent = "Nous ne détectons pas clairement d’aliment ou de boisson sur cette photo. Merci de photographier un aliment, une boisson ou un repas.";
   photoResult.hidden = true;
   photoFeedback.hidden = false;
 }

@@ -13,8 +13,8 @@
       content="MyCoachNutri aide à suivre simplement calories, repas, activité, pas et eau."
     />
     <title>MyCoachNutri</title>
-    <link rel="manifest" href="manifest.json?v=6" />
-    <link rel="stylesheet" href="style.css?v=6" />
+    <link rel="manifest" href="manifest.json?v=7" />
+    <link rel="stylesheet" href="style.css?v=7" />
   </head>
   <body>
     <div class="app-shell">
@@ -244,16 +244,16 @@
                 <p class="helper-text" id="photo-status">Analyse en cours...</p>
                 <div class="photo-feedback" id="photo-feedback" hidden>
                   <strong id="photo-feedback-title">Photo non conforme</strong>
-                  <p id="photo-feedback-message">Nous ne détectons pas clairement d'aliment sur cette photo.</p>
+                  <p id="photo-feedback-message">Nous ne détectons pas clairement d’aliment ou de boisson sur cette photo.</p>
                   <div class="photo-actions">
                     <label class="primary-action" for="meal-photo-camera">📸 Reprendre une photo</label>
                     <label class="secondary-action" for="meal-photo-gallery">🖼️ Choisir une autre photo</label>
                   </div>
                 </div>
                 <div class="photo-result" id="photo-result" hidden>
-                  <p>✅ Aliments détectés</p>
-                  <span>🍽️ Description du repas</span>
-                  <strong id="photo-description">Description du repas</strong>
+                  <p>✅ Aliment détecté</p>
+                  <span>🍽️ Description</span>
+                  <strong id="photo-description">Description</strong>
                   <span>🔥 Calories estimées</span>
                   <strong id="photo-calories">≈ 0 kcal</strong>
                   <div class="photo-actions">
@@ -403,6 +403,6 @@
       </nav>
     </div>
 
-    <script src="app.js?v=6" defer></script>
+    <script src="app.js?v=7" defer></script>
   </body>
 </html>
