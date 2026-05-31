@@ -1,7 +1,7 @@
 "use strict";
 
 const STORAGE_KEY = "objectif-equilibre-v1";
-const PHOTO_MESSAGE = "Analyse photo bientôt disponible.";
+const PHOTO_AI_ENDPOINT = window.MYCOACHNUTRI_PHOTO_AI_ENDPOINT || "";
 
 const defaultState = {
   profile: null,
@@ -29,6 +29,14 @@ const mealDescription = mealForm.elements.description;
 const selectedMealTitle = document.querySelector("#selected-meal-title");
 const photoInput = document.querySelector("#meal-photo");
 const photoStatus = document.querySelector("#photo-status");
+const photoAnalysis = document.querySelector("#photo-analysis");
+const photoPreview = document.querySelector("#photo-preview");
+const photoResult = document.querySelector("#photo-result");
+const photoCalories = document.querySelector("#photo-calories");
+const photoDescription = document.querySelector("#photo-description");
+const photoConfidence = document.querySelector("#photo-confidence");
+const photoValidate = document.querySelector("#photo-validate");
+const photoEdit = document.querySelector("#photo-edit");
 const stepsInput = document.querySelector("#steps-input");
 const stepsEstimate = document.querySelector("#steps-estimate");
 const stepsMessage = document.querySelector("#steps-message");
@@ -38,6 +46,8 @@ const updateButton = document.querySelector("#update-button");
 
 let pendingServiceWorker = null;
 let refreshingForUpdate = false;
+let currentPhotoAnalysis = null;
+let currentPhotoObjectUrl = null;
 
 const mealLabels = {
   breakfast: "Ajouter mon petit-déjeuner",
@@ -201,14 +211,21 @@ function bindMeals() {
     mealForm.elements.mealType.value = mealType;
     mealForm.elements.portion.value = "normal";
     mealForm.hidden = true;
-    photoStatus.hidden = true;
+    resetPhotoAnalysis();
     saveState();
     render();
   });
 
   photoInput.addEventListener("change", () => {
-    photoStatus.textContent = PHOTO_MESSAGE;
-    photoStatus.hidden = false;
+    handlePhotoSelection(photoInput.files?.[0]);
+  });
+
+  photoValidate.addEventListener("click", () => {
+    validatePhotoMeal();
+  });
+
+  photoEdit.addEventListener("click", () => {
+    editPhotoMealManually();
   });
 }
 
@@ -268,7 +285,7 @@ function bindReset() {
     mealForm.reset();
     sportForm.reset();
     mealForm.hidden = true;
-    photoStatus.hidden = true;
+    resetPhotoAnalysis();
     stepsInput.value = "";
     render();
     showView("home");
@@ -279,12 +296,144 @@ function openMealForm(mealType) {
   mealForm.hidden = false;
   mealForm.elements.mealType.value = mealType;
   selectedMealTitle.textContent = mealLabels[mealType] || mealLabels.breakfast;
-  photoStatus.hidden = true;
+  resetPhotoAnalysis();
   mealForm.scrollIntoView({ behavior: "smooth", block: "start" });
   mealDescription.focus();
 }
 
+async function handlePhotoSelection(file) {
+  if (!file) return;
+
+  if (!file.type.startsWith("image/")) {
+    photoStatus.textContent = "Choisissez une image de repas.";
+    photoAnalysis.hidden = false;
+    return;
+  }
+
+  if (currentPhotoObjectUrl) URL.revokeObjectURL(currentPhotoObjectUrl);
+  currentPhotoObjectUrl = URL.createObjectURL(file);
+  photoPreview.src = currentPhotoObjectUrl;
+  photoAnalysis.hidden = false;
+  photoResult.hidden = true;
+  photoConfidence.hidden = true;
+  photoStatus.hidden = false;
+  photoStatus.textContent = "Analyse de la photo en cours...";
+
+  try {
+    currentPhotoAnalysis = await analyzeMealPhoto(file);
+    renderPhotoAnalysis(currentPhotoAnalysis);
+  } catch {
+    currentPhotoAnalysis = buildLocalPhotoEstimate();
+    currentPhotoAnalysis.confidence = "low";
+    renderPhotoAnalysis(currentPhotoAnalysis);
+  }
+}
+
+// En production GitHub Pages, configurez window.MYCOACHNUTRI_PHOTO_AI_ENDPOINT
+// vers un backend sécurisé qui appelle l'IA sans exposer de clé API dans le navigateur.
+async function analyzeMealPhoto(file) {
+  if (!PHOTO_AI_ENDPOINT) {
+    return buildLocalPhotoEstimate();
+  }
+
+  const formData = new FormData();
+  formData.append("image", file);
+  formData.append("mealType", mealForm.elements.mealType.value || "meal");
+  formData.append("portion", mealForm.elements.portion.value || "normal");
+
+  const response = await fetch(PHOTO_AI_ENDPOINT, {
+    method: "POST",
+    body: formData
+  });
+
+  if (!response.ok) throw new Error("Photo analysis failed");
+
+  const result = await response.json();
+  return {
+    calories: Math.max(0, Math.round(Number(result.calories || 0))),
+    description: String(result.description || "Repas photographié"),
+    portion: result.portion || mealForm.elements.portion.value || "normal",
+    confidence: result.confidence || "medium"
+  };
+}
+
+function buildLocalPhotoEstimate() {
+  const mealType = mealForm.elements.mealType.value || "lunch";
+  const portion = mealForm.elements.portion.value || "normal";
+  const baseByMeal = {
+    breakfast: 450,
+    lunch: 650,
+    dinner: 600,
+    snack: 250
+  };
+  const calories = Math.round((baseByMeal[mealType] || 550) * (portionFactors[portion] || 1));
+
+  return {
+    calories,
+    description: "Repas photographié",
+    portion,
+    confidence: "low"
+  };
+}
+
+function renderPhotoAnalysis(analysis) {
+  photoCalories.textContent = `≈ ${formatCalories(analysis.calories)}`;
+  photoDescription.textContent = analysis.description;
+  photoConfidence.hidden = analysis.confidence !== "low";
+  photoStatus.textContent = "Analyse terminée.";
+  photoResult.hidden = false;
+}
+
+function validatePhotoMeal() {
+  if (!currentPhotoAnalysis) return;
+
+  const mealType = mealForm.elements.mealType.value || "breakfast";
+  state.meals.unshift({
+    id: createId(),
+    mealType,
+    description: currentPhotoAnalysis.description,
+    portion: currentPhotoAnalysis.portion || mealForm.elements.portion.value || "normal",
+    calories: currentPhotoAnalysis.calories,
+    source: "photo",
+    createdAt: new Date().toISOString()
+  });
+
+  mealForm.reset();
+  mealForm.elements.mealType.value = mealType;
+  mealForm.elements.portion.value = "normal";
+  mealForm.hidden = true;
+  resetPhotoAnalysis();
+  saveState();
+  render();
+}
+
+function editPhotoMealManually() {
+  if (currentPhotoAnalysis?.description) {
+    mealDescription.value = currentPhotoAnalysis.description;
+  }
+  resetPhotoAnalysis();
+  mealDescription.focus();
+}
+
+function resetPhotoAnalysis() {
+  currentPhotoAnalysis = null;
+  photoInput.value = "";
+  photoAnalysis.hidden = true;
+  photoResult.hidden = true;
+  photoConfidence.hidden = true;
+  photoStatus.textContent = "Analyse en cours...";
+  photoPreview.removeAttribute("src");
+  if (currentPhotoObjectUrl) {
+    URL.revokeObjectURL(currentPhotoObjectUrl);
+    currentPhotoObjectUrl = null;
+  }
+}
+
 function showView(viewId) {
+  if (viewId === "day" && !state.profile) {
+    viewId = "profile";
+  }
+
   views.forEach((view) => {
     view.classList.toggle("is-active", view.id === viewId);
   });
@@ -328,12 +477,19 @@ function calculateStepsCalories(steps) {
 }
 
 function render() {
+  renderNavigationState();
   renderProfileResults();
   renderMeals();
   renderSports();
   renderSteps();
   renderWater();
   renderSummary();
+}
+
+function renderNavigationState() {
+  document.querySelectorAll('[data-view-target="day"]').forEach((button) => {
+    button.hidden = !state.profile;
+  });
 }
 
 function renderProfileResults() {

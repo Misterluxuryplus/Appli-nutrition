@@ -190,8 +190,8 @@ h2 {
 }
 
 h1 {
-  max-width: 10ch;
-  font-size: clamp(2.65rem, 16vw, 5.4rem);
+  max-width: 12ch;
+  font-size: clamp(2.45rem, 13vw, 4.6rem);
 }
 
 h2 {
@@ -211,6 +211,31 @@ h2 {
   max-width: 34rem;
   margin: 18px 0 24px;
   font-size: 1.05rem;
+}
+
+.home-card-grid {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 22px;
+}
+
+.home-card-grid article {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 10px 28px rgba(33, 48, 45, 0.08);
+}
+
+.home-card-grid strong {
+  font-size: 1rem;
+}
+
+.home-card-grid span {
+  color: var(--muted);
+  line-height: 1.4;
 }
 
 .notice,
@@ -498,6 +523,52 @@ textarea:focus {
   height: 1px;
   opacity: 0;
   pointer-events: none;
+}
+
+.photo-analysis {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  background: var(--surface-muted);
+  border: 1px solid rgba(47, 111, 99, 0.16);
+  border-radius: var(--radius);
+}
+
+.photo-analysis img {
+  width: 100%;
+  max-height: 260px;
+  object-fit: cover;
+  border-radius: var(--radius);
+}
+
+.photo-result {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  background: var(--surface);
+  border-radius: var(--radius);
+}
+
+.photo-result p {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.photo-result span,
+.photo-result small {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.photo-result strong {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.photo-actions {
+  display: grid;
+  gap: 8px;
 }
 
 .form-panel-heading {

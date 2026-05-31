@@ -13,8 +13,8 @@
       content="MyCoachNutri aide à suivre simplement calories, repas, activité, pas et eau."
     />
     <title>MyCoachNutri</title>
-    <link rel="manifest" href="manifest.json?v=2" />
-    <link rel="stylesheet" href="style.css?v=2" />
+    <link rel="manifest" href="manifest.json?v=4" />
+    <link rel="stylesheet" href="style.css?v=4" />
   </head>
   <body>
     <div class="app-shell">
@@ -39,10 +39,26 @@
       <main>
         <section class="view is-active hero-view" id="home" aria-labelledby="home-title">
           <div class="hero-copy">
-            <p class="eyebrow">Sans culpabilisation</p>
-            <h1 id="home-title">MyCoachNutri</h1>
-            <p>Suivez votre journée simplement : repas, calories dépensées, pas, eau et reste estimé.</p>
-            <button class="primary-action" type="button" data-view-target="profile">Commencer</button>
+            <p class="eyebrow">🥗 🍎 💧 🚶 Simple et motivant</p>
+            <h1 id="home-title">🎯 Découvrez votre objectif calorique</h1>
+            <p>
+              Calculez en moins d'une minute les calories dont votre corps a besoin pour perdre du poids simplement.
+            </p>
+            <div class="home-card-grid" aria-label="Ce que l'application calcule">
+              <article>
+                <strong>🔥 Métabolisme de base</strong>
+                <span>Ce que votre corps brûle naturellement</span>
+              </article>
+              <article>
+                <strong>⚖️ Maintien</strong>
+                <span>Pour garder votre poids actuel</span>
+              </article>
+              <article>
+                <strong>🎯 Objectif</strong>
+                <span>Pour perdre du poids progressivement</span>
+              </article>
+            </div>
+            <button class="primary-action" type="button" data-view-target="profile">🚀 Calculer mon objectif</button>
           </div>
 
           <div class="notice" role="note">
@@ -219,9 +235,22 @@
                 <textarea name="description" rows="4" placeholder="Ex : riz, poulet, légumes, yaourt" required></textarea>
               </label>
 
-              <label class="secondary-action photo-label" for="meal-photo">📸 Ajouter une photo du repas</label>
+              <label class="secondary-action photo-label" for="meal-photo">📸 Photographier mon repas</label>
               <input id="meal-photo" name="photo" type="file" accept="image/*" capture="environment" />
-              <p class="helper-text" id="photo-status" hidden>Analyse photo bientôt disponible.</p>
+              <div class="photo-analysis" id="photo-analysis" hidden>
+                <img id="photo-preview" alt="Aperçu du repas" />
+                <p class="helper-text" id="photo-status">Analyse en cours...</p>
+                <div class="photo-result" id="photo-result" hidden>
+                  <p>🍽️ Repas estimé :</p>
+                  <strong id="photo-calories">≈ 0 kcal</strong>
+                  <span id="photo-description">Description du repas</span>
+                  <small id="photo-confidence" hidden>Estimation approximative. Vérifiez si nécessaire.</small>
+                  <div class="photo-actions">
+                    <button class="primary-action" type="button" id="photo-validate">✅ Valider</button>
+                    <button class="secondary-action" type="button" id="photo-edit">❌ Modifier manuellement</button>
+                  </div>
+                </div>
+              </div>
 
               <div class="inline-actions">
                 <button class="secondary-action" type="button" id="voice-button">🎙 Micro</button>
@@ -404,6 +433,6 @@
       </nav>
     </div>
 
-    <script src="app.js?v=2" defer></script>
+    <script src="app.js?v=4" defer></script>
   </body>
 </html>
