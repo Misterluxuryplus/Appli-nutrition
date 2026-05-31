@@ -508,6 +508,10 @@ textarea:focus {
   background: #fff0f5;
 }
 
+.meal-pleasure {
+  background: #fff6ec;
+}
+
 .meal-form-panel {
   margin: 0 0 20px;
   padding: 18px;
@@ -885,6 +889,17 @@ textarea:focus {
   background: #f5f0ff !important;
 }
 
+.summary-pleasure-line {
+  margin: -4px 0 0;
+  padding: 12px 14px;
+  color: #6f4f2b;
+  font-weight: 850;
+  line-height: 1.35;
+  background: #fff6ec;
+  border: 1px solid #f1d6b8;
+  border-radius: var(--radius);
+}
+
 .water-panel {
   margin-bottom: 16px;
   background: #e9f8ff;
@@ -982,6 +997,103 @@ textarea:focus {
   padding: 16px;
 }
 
+.history-block,
+.weight-card {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 22px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.history-block h3,
+.weight-heading h3,
+.weight-heading p,
+.weight-note,
+.weigh-due p,
+.future-panel p,
+.period-message p {
+  margin: 0;
+}
+
+.history-list {
+  display: grid;
+  gap: 10px;
+}
+
+.history-day-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 58px;
+  padding: 12px 14px;
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.history-day-button span,
+.weight-main span,
+.weight-results span,
+.next-weigh-card span {
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 750;
+}
+
+.history-detail,
+.period-panel,
+.period-message,
+.weigh-due,
+.future-panel,
+.weight-results,
+.next-weigh-card {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  background: var(--surface-muted);
+  border-radius: var(--radius);
+}
+
+.weight-main,
+.weight-results {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.weight-main div,
+.weight-results div {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  background: var(--surface);
+  border-radius: var(--radius);
+}
+
+.weight-main strong,
+.weight-results strong,
+.next-weigh-card strong {
+  font-size: 1.35rem;
+}
+
+.weight-note,
+.weight-heading p,
+.future-panel p,
+.period-message p {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.empty-state {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 750;
+}
+
 .bottom-nav {
   position: fixed;
   right: 0;
@@ -989,7 +1101,7 @@ textarea:focus {
   left: 0;
   z-index: 20;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   width: min(100%, 760px);
   margin: 0 auto;
   padding: 8px 12px calc(8px + env(safe-area-inset-bottom));

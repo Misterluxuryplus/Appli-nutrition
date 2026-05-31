@@ -13,8 +13,8 @@
       content="MyCoachNutri aide à suivre simplement calories, repas, activité, pas et eau."
     />
     <title>MyCoachNutri</title>
-    <link rel="manifest" href="manifest.json?v=7" />
-    <link rel="stylesheet" href="style.css?v=7" />
+    <link rel="manifest" href="manifest.json?v=10" />
+    <link rel="stylesheet" href="style.css?v=10" />
   </head>
   <body>
     <div class="app-shell">
@@ -221,12 +221,18 @@
                 <button class="primary-action" type="button" data-meal-type="snack">Ajouter une collation</button>
                 <ul class="entry-list compact-list" data-meal-list="snack" aria-label="Collations ajoutées"></ul>
               </article>
+              <article class="meal-moment-card meal-pleasure">
+                <h4>🍫 Écart / plaisir</h4>
+                <p>Un plaisir n’annule pas vos efforts. On le note simplement pour garder un repère.</p>
+                <button class="primary-action" type="button" data-meal-type="pleasure">Ajouter un plaisir</button>
+                <ul class="entry-list compact-list" data-meal-list="pleasure" aria-label="Plaisirs ajoutés"></ul>
+              </article>
             </div>
 
             <form class="stack meal-form-panel" id="meal-form" hidden>
               <input type="hidden" name="mealType" value="breakfast" />
               <div class="form-panel-heading">
-                <p class="eyebrow">Ajout repas</p>
+                <p class="eyebrow" id="selected-meal-eyebrow">Repas</p>
                 <h3 id="selected-meal-title">Ajouter mon petit-déjeuner</h3>
               </div>
 
@@ -269,24 +275,24 @@
               </div>
 
               <fieldset>
-                <legend>Taille du repas</legend>
+                <legend id="portion-legend">Taille du repas</legend>
                 <div class="segmented-control">
                   <label>
                     <input type="radio" name="portion" value="light" required />
-                    <span>Léger</span>
+                    <span id="portion-light-label">Léger</span>
                   </label>
                   <label>
                     <input type="radio" name="portion" value="normal" checked required />
-                    <span>Normal</span>
+                    <span id="portion-normal-label">Normal</span>
                   </label>
                   <label>
                     <input type="radio" name="portion" value="hearty" required />
-                    <span>Copieux</span>
+                    <span id="portion-hearty-label">Copieux</span>
                   </label>
                 </div>
               </fieldset>
 
-              <button class="primary-action" type="submit">Estimer le repas</button>
+              <button class="primary-action" type="submit" id="meal-submit-button">Estimer le repas</button>
             </form>
           </section>
 
@@ -359,6 +365,7 @@
                 <strong id="summary-balance">-</strong>
               </article>
             </div>
+            <p class="summary-pleasure-line" id="summary-pleasure">🍫 Plaisirs notés : 0 kcal</p>
 
             <div class="progress-panel" aria-label="Progression des calories mangées vers l'objectif du jour">
               <div class="progress-meta">
@@ -371,6 +378,143 @@
             </div>
 
             <p class="kind-message" id="kind-message">Remplissez votre profil pour obtenir une estimation adaptée.</p>
+          </section>
+        </section>
+
+        <section class="view" id="history" aria-labelledby="history-title">
+          <div class="section-heading">
+            <p class="eyebrow">Suivi simple</p>
+            <h2 id="history-title">📅 Historique</h2>
+          </div>
+
+          <section class="history-block" aria-labelledby="history-days-title">
+            <h3 id="history-days-title">Mes journées</h3>
+            <div class="history-list" id="history-list" aria-label="Journées enregistrées"></div>
+            <div class="history-detail" id="history-detail" hidden>
+              <h3 id="history-detail-title">Détail de la journée</h3>
+              <dl class="detail-list">
+                <div>
+                  <dt>🍽️ Calories consommées</dt>
+                  <dd id="history-detail-food">-</dd>
+                </div>
+                <div>
+                  <dt>🏃 Calories sport</dt>
+                  <dd id="history-detail-sport">-</dd>
+                </div>
+                <div>
+                  <dt>🚶 Pas</dt>
+                  <dd id="history-detail-steps">-</dd>
+                </div>
+                <div>
+                  <dt>💧 Eau</dt>
+                  <dd id="history-detail-water">-</dd>
+                </div>
+                <div>
+                  <dt>🎯 Bilan de la journée</dt>
+                  <dd id="history-detail-status">-</dd>
+                </div>
+              </dl>
+            </div>
+          </section>
+
+          <section class="history-block" aria-labelledby="weight-title">
+            <div class="weight-heading">
+              <h3 id="weight-title">⚖️ Mon évolution</h3>
+              <p>Le poids varie naturellement d'un jour à l'autre. Regardez plutôt votre évolution sur plusieurs semaines.</p>
+            </div>
+
+            <form class="stack weight-form" id="weight-setup-form">
+              <label>
+                <span>Poids de départ</span>
+                <input type="number" name="startWeight" min="35" max="250" step="0.1" inputmode="decimal" placeholder="95 kg" required />
+              </label>
+              <label>
+                <span>Pesée recommandée</span>
+                <select name="frequencyDays">
+                  <option value="30">Tous les 30 jours (recommandé)</option>
+                  <option value="14">Tous les 14 jours</option>
+                  <option value="7">Tous les 7 jours</option>
+                </select>
+              </label>
+              <button class="primary-action" type="submit">Enregistrer mon suivi</button>
+            </form>
+
+            <div class="weight-card" id="weight-card" hidden>
+              <p class="weight-note">
+                Le poids peut varier d'un jour à l'autre à cause de l'eau, du sel ou de la digestion.
+              </p>
+              <div class="weight-main">
+                <div>
+                  <span>Poids de départ</span>
+                  <strong id="weight-current">-</strong>
+                </div>
+                <div>
+                  <span>Dernière pesée</span>
+                  <strong id="weight-last">-</strong>
+                </div>
+              </div>
+              <label>
+                <span>Fréquence de pesée</span>
+                <select id="weight-frequency">
+                  <option value="30">Tous les 30 jours (recommandé)</option>
+                  <option value="14">Tous les 14 jours</option>
+                  <option value="7">Tous les 7 jours</option>
+                </select>
+              </label>
+              <div class="period-panel" id="period-panel" hidden>
+                <fieldset>
+                  <legend>🌸 Règles en cours ?</legend>
+                  <div class="segmented-control">
+                    <label>
+                      <input type="radio" name="periodActive" value="yes" />
+                      <span>Oui</span>
+                    </label>
+                    <label>
+                      <input type="radio" name="periodActive" value="no" />
+                      <span>Non</span>
+                    </label>
+                  </div>
+                </fieldset>
+                <div class="period-message" id="period-message" hidden>
+                  <p>Pendant les règles, le poids peut temporairement varier à cause de la rétention d'eau et des changements hormonaux.</p>
+                  <p>Une légère prise de poids pendant cette période n'est pas forcément liée à une prise de graisse.</p>
+                </div>
+              </div>
+              <div class="next-weigh-card">
+                <span>⚖️ Prochaine pesée</span>
+                <strong id="next-weigh-date">-</strong>
+              </div>
+              <div class="weigh-due" id="weigh-due" hidden>
+                <p>⚖️ Il est temps de mettre à jour votre poids.</p>
+                <button class="primary-action" type="button" id="show-weight-update">Mettre à jour mon poids</button>
+              </div>
+              <form class="stack weight-form" id="weight-update-form" hidden>
+                <label>
+                  <span>Nouveau poids</span>
+                  <input type="number" name="currentWeight" min="35" max="250" step="0.1" inputmode="decimal" placeholder="92,4 kg" />
+                </label>
+                <button class="primary-action" type="submit">Valider ma pesée</button>
+              </form>
+              <div class="weight-results" id="weight-results" hidden>
+                <div>
+                  <span>Dernière pesée</span>
+                  <strong id="weight-result-current">-</strong>
+                </div>
+                <div>
+                  <span>Évolution</span>
+                  <strong id="weight-result-change">-</strong>
+                </div>
+                <div>
+                  <span>Progression</span>
+                  <strong id="weight-result-total">-</strong>
+                </div>
+                <p id="weight-message">👍 Continuez, la régularité est la clé.</p>
+              </div>
+              <details class="future-panel">
+                <summary>Prévu plus tard</summary>
+                <p>📈 Courbe du poids · 📊 Statistiques mensuelles · 📅 Historique complet des pesées</p>
+              </details>
+            </div>
           </section>
         </section>
 
@@ -396,6 +540,10 @@
           <span aria-hidden="true">◷</span>
           Ma journée
         </button>
+        <button type="button" data-view-target="history">
+          <span aria-hidden="true">📅</span>
+          Historique
+        </button>
         <button type="button" data-view-target="settings">
           <span aria-hidden="true">⚙</span>
           Réglages
@@ -403,6 +551,6 @@
       </nav>
     </div>
 
-    <script src="app.js?v=7" defer></script>
+    <script src="app.js?v=10" defer></script>
   </body>
 </html>

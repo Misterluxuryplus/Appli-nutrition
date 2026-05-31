@@ -2,6 +2,33 @@
 
 const STORAGE_KEY = "objectif-equilibre-v1";
 const PHOTO_AI_ENDPOINT = window.MYCOACHNUTRI_PHOTO_AI_ENDPOINT || "";
+const PHOTO_AI_PROMPT =
+  `Analyse cette image.
+Dis d'abord si elle contient au moins un aliment ou une boisson consommable.
+Un fruit seul, comme une poire, une pomme ou une banane, est une photo conforme.
+Une boisson seule est aussi conforme.
+Si oui, estime les calories totales.
+Si non, indique photo non conforme.
+
+Réponds uniquement en JSON, par exemple :
+{
+  "isFood": true,
+  "name": "Poire",
+  "calories": 80,
+  "confidence": "high",
+  "message": "Aliment détecté : poire"
+}`;
+
+// Tests de conformité attendus pour l'analyse photo IA.
+const PHOTO_ANALYSIS_TESTS = [
+  { label: "poire seule", expected: "conforme" },
+  { label: "pomme seule", expected: "conforme" },
+  { label: "banane seule", expected: "conforme" },
+  { label: "yaourt seul", expected: "conforme" },
+  { label: "verre de jus", expected: "conforme" },
+  { label: "écran d’ordinateur", expected: "non conforme" },
+  { label: "canapé", expected: "non conforme" }
+];
 
 const defaultState = {
   profile: null,
@@ -12,7 +39,15 @@ const defaultState = {
     calories: 0
   },
   waterLiters: 0,
-  history: []
+  history: [],
+  weight: {
+    startWeight: null,
+    lastWeight: null,
+    lastWeighDate: null,
+    frequencyDays: 30,
+    entries: []
+  },
+  periodActive: null
 };
 
 let state = loadState();
@@ -26,7 +61,13 @@ const resetButton = document.querySelector("#reset-button");
 const voiceButton = document.querySelector("#voice-button");
 const voiceStatus = document.querySelector("#voice-status");
 const mealDescription = mealForm.elements.description;
+const selectedMealEyebrow = document.querySelector("#selected-meal-eyebrow");
 const selectedMealTitle = document.querySelector("#selected-meal-title");
+const portionLegend = document.querySelector("#portion-legend");
+const portionLightLabel = document.querySelector("#portion-light-label");
+const portionNormalLabel = document.querySelector("#portion-normal-label");
+const portionHeartyLabel = document.querySelector("#portion-hearty-label");
+const mealSubmitButton = document.querySelector("#meal-submit-button");
 const photoInputs = document.querySelectorAll(".photo-input");
 const photoStatus = document.querySelector("#photo-status");
 const photoAnalysis = document.querySelector("#photo-analysis");
@@ -43,6 +84,13 @@ const stepsInput = document.querySelector("#steps-input");
 const stepsEstimate = document.querySelector("#steps-estimate");
 const stepsMessage = document.querySelector("#steps-message");
 const waterMessage = document.querySelector("#water-message");
+const weightSetupForm = document.querySelector("#weight-setup-form");
+const weightCard = document.querySelector("#weight-card");
+const weightFrequency = document.querySelector("#weight-frequency");
+const weightUpdateForm = document.querySelector("#weight-update-form");
+const showWeightUpdate = document.querySelector("#show-weight-update");
+const periodPanel = document.querySelector("#period-panel");
+const periodMessage = document.querySelector("#period-message");
 const updateBanner = document.querySelector("#update-banner");
 const updateButton = document.querySelector("#update-button");
 
@@ -55,7 +103,16 @@ const mealLabels = {
   breakfast: "Ajouter mon petit-déjeuner",
   lunch: "Ajouter mon déjeuner",
   dinner: "Ajouter mon dîner",
-  snack: "Ajouter une collation"
+  snack: "Ajouter une collation",
+  pleasure: "Ajouter un écart / plaisir"
+};
+
+const mealPlaceholders = {
+  breakfast: "Ex : fromage blanc, fruit, pain complet",
+  lunch: "Ex : riz, poulet, légumes, yaourt",
+  dinner: "Ex : poisson, légumes, pommes de terre",
+  snack: "Ex : fruit, skyr, amandes",
+  pleasure: "Ex : gâteau, bonbons, soda, glace, chips"
 };
 
 const foodKeywords = [
@@ -70,8 +127,13 @@ const foodKeywords = [
   { words: ["fromage"], calories: 190 },
   { words: ["legumes", "légumes", "salade", "crudites", "crudités"], calories: 120 },
   { words: ["croissant", "viennoiserie"], calories: 260 },
-  { words: ["chocolat"], calories: 300 },
+  { words: ["gateau", "gâteau", "biscuit", "dessert"], calories: 320 },
+  { words: ["barre chocolatee", "barre chocolatée", "chocolat"], calories: 300 },
   { words: ["bonbons", "bonbon"], calories: 260 },
+  { words: ["chips"], calories: 280 },
+  { words: ["soda", "cola"], calories: 150 },
+  { words: ["glace"], calories: 260 },
+  { words: ["fast-food", "fast food", "kebab", "tacos"], calories: 850 },
   { words: ["pizza"], calories: 760 },
   { words: ["burger", "hamburger"], calories: 650 },
   { words: ["frites"], calories: 420 },
@@ -92,6 +154,13 @@ const portionLabels = {
   normal: "Normal",
   hearty: "Copieux",
   large: "Copieux"
+};
+
+const pleasurePortionLabels = {
+  light: "Petit plaisir",
+  normal: "Plaisir moyen",
+  hearty: "Gros plaisir",
+  large: "Gros plaisir"
 };
 
 const activityFactors = {
@@ -116,11 +185,75 @@ function init() {
   bindSport();
   bindSteps();
   bindWater();
+  bindWeight();
   bindReset();
   setupSpeechRecognition();
   restoreProfileForm();
   render();
   registerServiceWorker();
+}
+
+function bindWeight() {
+  weightSetupForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const formData = new FormData(weightSetupForm);
+    const startWeight = Number(formData.get("startWeight"));
+    const frequencyDays = Number(formData.get("frequencyDays") || 30);
+    if (!startWeight) return;
+
+    const today = getTodayKey();
+    state.weight = {
+      startWeight,
+      lastWeight: startWeight,
+      lastWeighDate: today,
+      frequencyDays,
+      entries: [{ date: today, weight: startWeight }]
+    };
+
+    weightSetupForm.reset();
+    saveState();
+    render();
+  });
+
+  weightFrequency.addEventListener("change", () => {
+    ensureWeightState();
+    state.weight.frequencyDays = Number(weightFrequency.value || 30);
+    saveState();
+    render();
+  });
+
+  showWeightUpdate.addEventListener("click", () => {
+    weightUpdateForm.hidden = false;
+    weightUpdateForm.elements.currentWeight.focus();
+  });
+
+  weightUpdateForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const currentWeight = Number(new FormData(weightUpdateForm).get("currentWeight"));
+    if (!currentWeight) return;
+
+    ensureWeightState();
+    const today = getTodayKey();
+    state.weight.lastWeight = currentWeight;
+    state.weight.lastWeighDate = today;
+    state.weight.entries = [
+      ...(state.weight.entries || []).filter((entry) => entry.date !== today),
+      { date: today, weight: currentWeight }
+    ];
+
+    weightUpdateForm.reset();
+    weightUpdateForm.hidden = true;
+    saveState();
+    render();
+  });
+
+  document.querySelectorAll('input[name="periodActive"]').forEach((input) => {
+    input.addEventListener("change", () => {
+      state.periodActive = input.value === "yes";
+      saveState();
+      render();
+    });
+  });
 }
 
 function bindNavigation() {
@@ -167,7 +300,7 @@ function bindMeals() {
     const description = String(formData.get("description")).trim();
     const mealType = formData.get("mealType") || "breakfast";
     const portion = formData.get("portion");
-    const calories = estimateMealCalories(description, portion);
+    const calories = estimateMealCalories(description, portion, mealType);
 
     state.meals.unshift({
       id: createId(),
@@ -260,10 +393,22 @@ function bindReset() {
 function openMealForm(mealType) {
   mealForm.hidden = false;
   mealForm.elements.mealType.value = mealType;
-  selectedMealTitle.textContent = mealLabels[mealType] || mealLabels.breakfast;
+  configureMealForm(mealType);
   resetPhotoAnalysis();
   mealForm.scrollIntoView({ behavior: "smooth", block: "start" });
   mealDescription.focus();
+}
+
+function configureMealForm(mealType) {
+  const isPleasure = mealType === "pleasure";
+  selectedMealEyebrow.textContent = isPleasure ? "Écart / plaisir" : "Repas";
+  selectedMealTitle.textContent = mealLabels[mealType] || mealLabels.breakfast;
+  mealDescription.placeholder = mealPlaceholders[mealType] || mealPlaceholders.lunch;
+  portionLegend.textContent = isPleasure ? "Taille du plaisir" : "Taille du repas";
+  portionLightLabel.textContent = isPleasure ? "Petit plaisir" : "Léger";
+  portionNormalLabel.textContent = isPleasure ? "Moyen plaisir" : "Normal";
+  portionHeartyLabel.textContent = isPleasure ? "Gros plaisir" : "Copieux";
+  mealSubmitButton.textContent = isPleasure ? "Estimer le plaisir" : "Estimer le repas";
 }
 
 async function handlePhotoSelection(file) {
@@ -306,10 +451,7 @@ async function analyzeMealPhoto(file) {
   formData.append("image", file);
   formData.append("mealType", mealForm.elements.mealType.value || "meal");
   formData.append("portion", mealForm.elements.portion.value || "normal");
-  formData.append(
-    "instruction",
-    "Cette image contient-elle au moins un aliment ou une boisson consommable ? Si oui, identifie l'aliment ou la boisson, même s'il s'agit d'un seul fruit, d'un yaourt, d'une boisson, d'une collation ou d'un aliment emballé visible, puis estime uniquement les calories totales."
-  );
+  formData.append("instruction", PHOTO_AI_PROMPT);
 
   const response = await fetch(PHOTO_AI_ENDPOINT, {
     method: "POST",
@@ -324,16 +466,16 @@ async function analyzeMealPhoto(file) {
 
 function normalizePhotoAiResult(result) {
   const confidence = result.confidenceScore ?? result.confidence ?? result.foodConfidence ?? "medium";
-  const hasFood = result.hasFood ?? result.foodDetected ?? result.containsFood ?? result.containsEdibleItem ?? result.hasConsumable;
+  const hasFood = result.isFood ?? result.hasFood ?? result.foodDetected ?? result.containsFood ?? result.containsEdibleItem ?? result.hasConsumable;
   const calories = Math.max(0, Math.round(Number(result.calories || result.estimatedCalories || 0)));
-  const rawDescription = String(result.description || result.mealDescription || result.foodName || result.detectedFood || "").trim();
+  const rawDescription = String(result.name || result.message || result.description || result.mealDescription || result.foodName || result.detectedFood || "").trim();
   const description = rawDescription || "Aliment ou boisson détecté";
 
   if (hasFood === false || result.status === "no_food") {
     return { status: "no_food" };
   }
 
-  if (hasFood !== true || isLowConfidence(confidence, description) || !calories) {
+  if (hasFood !== true || !calories) {
     return { status: "low_confidence" };
   }
 
@@ -344,41 +486,6 @@ function normalizePhotoAiResult(result) {
     portion: result.portion || mealForm.elements.portion.value || "normal",
     confidence
   };
-}
-
-function isLowConfidence(confidence, description = "") {
-  if (isSimpleFoodDescription(description)) {
-    if (typeof confidence === "number") return confidence < 0.4;
-    return ["unknown"].includes(String(confidence).toLowerCase());
-  }
-
-  if (typeof confidence === "number") return confidence < 0.55;
-  return ["low", "faible", "uncertain", "unknown"].includes(String(confidence).toLowerCase());
-}
-
-function isSimpleFoodDescription(description) {
-  const normalized = normalizeText(description);
-  const simpleFoods = [
-    "poire",
-    "pomme",
-    "banane",
-    "orange",
-    "fruit",
-    "skyr",
-    "fromage blanc",
-    "yaourt",
-    "pain",
-    "riz",
-    "pates",
-    "salade",
-    "jus",
-    "eau",
-    "cafe",
-    "the",
-    "boisson"
-  ];
-
-  return simpleFoods.some((food) => normalized.includes(food));
 }
 
 function renderPhotoAnalysisState(analysis) {
@@ -470,7 +577,7 @@ function resetPhotoAnalysis() {
 }
 
 function showView(viewId) {
-  if (viewId === "day" && !state.profile) {
+  if ((viewId === "day" || viewId === "history") && !state.profile) {
     viewId = "profile";
   }
 
@@ -499,10 +606,10 @@ function calculateProfile(profile) {
   };
 }
 
-function estimateMealCalories(description, portion) {
+function estimateMealCalories(description, portion, mealType = "meal") {
   const normalized = normalizeText(description);
   const matches = foodKeywords.filter((item) => item.words.some((word) => normalized.includes(normalizeText(word))));
-  const baseCalories = matches.reduce((total, item) => total + item.calories, 0) || 430;
+  const baseCalories = matches.reduce((total, item) => total + item.calories, 0) || (mealType === "pleasure" ? 300 : 430);
   return Math.round(baseCalories * (portionFactors[portion] || 1));
 }
 
@@ -518,10 +625,12 @@ function render() {
   renderSteps();
   renderWater();
   renderSummary();
+  renderHistory();
+  renderWeight();
 }
 
 function renderNavigationState() {
-  document.querySelectorAll('[data-view-target="day"]').forEach((button) => {
+  document.querySelectorAll('[data-view-target="day"], [data-view-target="history"]').forEach((button) => {
     button.hidden = !state.profile;
   });
 }
@@ -602,7 +711,7 @@ function renderMeals() {
     item.innerHTML = `
       <div>
         <strong>${escapeHtml(meal.description)}</strong>
-        <small>${portionLabels[meal.portion] || "Normal"} · ${formatCalories(meal.calories)}</small>
+        <small>${getPortionLabel(meal)} · ${formatCalories(meal.calories)}</small>
       </div>
       <button type="button" aria-label="Supprimer ce repas" data-delete-meal="${meal.id}">×</button>
     `;
@@ -663,6 +772,7 @@ function renderWater() {
 function renderSummary() {
   const target = state.profile?.calculations.target || 0;
   const eaten = sumCalories(state.meals);
+  const pleasure = sumCalories(state.meals.filter((meal) => meal.mealType === "pleasure"));
   const sport = sumCalories(state.sports);
   const stepsCalories = Number(state.steps?.calories || 0);
   const remaining = target - eaten + sport + stepsCalories;
@@ -672,12 +782,115 @@ function renderSummary() {
   document.querySelector("#summary-sport").textContent = formatCalories(sport);
   document.querySelector("#summary-steps").textContent = formatCalories(stepsCalories);
   document.querySelector("#summary-balance").textContent = target ? formatCalories(Math.max(remaining, 0)) : "-";
+  document.querySelector("#summary-pleasure").textContent = `🍫 Plaisirs notés : ${formatCalories(pleasure)}`;
   document.querySelector("#progress-target-label").textContent = target ? formatCalories(target) : "Objectif du jour";
 
   const progressFill = document.querySelector("#calorie-progress");
   progressFill.style.width = `${progress}%`;
   progressFill.classList.toggle("is-over", target > 0 && eaten > target);
   document.querySelector("#kind-message").textContent = buildKindMessage(target, remaining);
+}
+
+function renderHistory() {
+  const list = document.querySelector("#history-list");
+  const detail = document.querySelector("#history-detail");
+  list.innerHTML = "";
+
+  const entries = [...(state.history || [])].sort((a, b) => b.date.localeCompare(a.date));
+  if (!entries.length) {
+    list.innerHTML = `<p class="empty-state">⚪ Aucune donnée enregistrée pour le moment.</p>`;
+    detail.hidden = true;
+    return;
+  }
+
+  entries.forEach((entry) => {
+    const status = getDayStatus(entry);
+    const button = document.createElement("button");
+    button.className = "history-day-button";
+    button.type = "button";
+    button.dataset.historyDate = entry.date;
+    button.innerHTML = `
+      <span>${formatDate(entry.date)}</span>
+      <strong>${status.label}</strong>
+    `;
+    list.append(button);
+  });
+
+  list.querySelectorAll("[data-history-date]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const entry = entries.find((item) => item.date === button.dataset.historyDate);
+      if (entry) renderHistoryDetail(entry);
+    });
+  });
+
+  renderHistoryDetail(entries[0]);
+}
+
+function renderHistoryDetail(entry) {
+  const status = getDayStatus(entry);
+  document.querySelector("#history-detail").hidden = false;
+  document.querySelector("#history-detail-title").textContent = formatDate(entry.date);
+  document.querySelector("#history-detail-food").textContent = formatCalories(entry.eaten || 0);
+  document.querySelector("#history-detail-sport").textContent = formatCalories(entry.sport || 0);
+  document.querySelector("#history-detail-steps").textContent = `${Number(entry.steps || 0).toLocaleString("fr-FR")} pas`;
+  document.querySelector("#history-detail-water").textContent = formatLiters(entry.waterLiters || 0);
+  document.querySelector("#history-detail-status").textContent = status.label;
+}
+
+function getDayStatus(entry) {
+  const hasData = Number(entry.eaten || 0) || Number(entry.sport || 0) || Number(entry.steps || 0) || Number(entry.waterLiters || 0);
+  if (!hasData) return { level: "none", label: "⚪ Aucune donnée" };
+  if (!entry.target) return { level: "none", label: "⚪ Aucune donnée" };
+  const remaining = Number(entry.target) - Number(entry.eaten || 0) + Number(entry.sport || 0) + Number(entry.stepsCalories || 0);
+  if (remaining >= 0) return { level: "ok", label: "🟢 Dans l'objectif" };
+  if (remaining >= -300) return { level: "near", label: "🟠 Proche de l'objectif" };
+  return { level: "over", label: "🔴 Au-dessus de l'objectif" };
+}
+
+function renderWeight() {
+  ensureWeightState();
+  const hasWeight = Boolean(state.weight.startWeight && state.weight.lastWeight);
+  weightSetupForm.hidden = hasWeight;
+  weightCard.hidden = !hasWeight;
+  if (!hasWeight) return;
+
+  const frequency = Number(state.weight.frequencyDays || 30);
+  const nextDate = addDays(state.weight.lastWeighDate || getTodayKey(), frequency);
+  const isDue = getTodayKey() >= nextDate;
+  const startWeight = Number(state.weight.startWeight);
+  const lastWeight = Number(state.weight.lastWeight);
+  const change = lastWeight - startWeight;
+  const progression = startWeight ? (change / startWeight) * 100 : 0;
+
+  document.querySelector("#weight-current").textContent = formatWeight(startWeight);
+  document.querySelector("#weight-last").textContent = formatWeight(lastWeight);
+  weightFrequency.value = String(frequency);
+  document.querySelector("#next-weigh-date").textContent = formatDate(nextDate);
+  document.querySelector("#weigh-due").hidden = !isDue;
+  document.querySelector("#weight-result-current").textContent = formatWeight(lastWeight);
+  document.querySelector("#weight-result-change").textContent = formatSignedWeight(change);
+  document.querySelector("#weight-result-total").textContent = formatSignedPercent(progression);
+  document.querySelector("#weight-message").textContent = buildWeightMessage(change);
+  document.querySelector("#weight-results").hidden = false;
+
+  const isFemale = state.profile?.sex === "female";
+  periodPanel.hidden = !isFemale;
+  if (isFemale) {
+    document.querySelectorAll('input[name="periodActive"]').forEach((input) => {
+      input.checked = state.periodActive === (input.value === "yes");
+    });
+    periodMessage.hidden = state.periodActive !== true;
+    if (state.periodActive === true) {
+      document.querySelector("#weight-message").textContent =
+        "Cette pesée peut être influencée par les règles. Il est conseillé d'observer votre évolution sur plusieurs semaines.";
+    }
+  }
+}
+
+function buildWeightMessage(change) {
+  if (change < -0.2) return "🎉 Bravo, vos efforts portent leurs fruits.";
+  if (change > 0.5) return "🙂 Une variation ponctuelle est normale. Continuez vos bonnes habitudes.";
+  return "👍 Continuez, la régularité est la clé.";
 }
 
 function buildKindMessage(target, remaining) {
@@ -793,6 +1006,7 @@ function showUpdateBanner(worker) {
 }
 
 function saveState() {
+  syncTodayHistory();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
@@ -809,8 +1023,64 @@ function createId() {
   return crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
+function syncTodayHistory() {
+  const todayEntry = buildTodayHistoryEntry();
+  state.history = [
+    ...(state.history || []).filter((entry) => entry.date !== todayEntry.date),
+    todayEntry
+  ].slice(-90);
+}
+
+function buildTodayHistoryEntry() {
+  return {
+    date: getTodayKey(),
+    target: state.profile?.calculations.target || 0,
+    eaten: sumCalories(state.meals),
+    sport: sumCalories(state.sports),
+    steps: Number(state.steps?.count || 0),
+    stepsCalories: Number(state.steps?.calories || 0),
+    waterLiters: Number(state.waterLiters || 0)
+  };
+}
+
+function ensureWeightState() {
+  state.weight = {
+    ...structuredClone(defaultState.weight),
+    ...(state.weight || {})
+  };
+  state.weight.entries = state.weight.entries || [];
+  state.weight.frequencyDays = Number(state.weight.frequencyDays || 30);
+}
+
+function getTodayKey() {
+  return toDateKey(new Date());
+}
+
+function addDays(dateKey, days) {
+  const date = parseDateKey(dateKey);
+  date.setDate(date.getDate() + Number(days || 30));
+  return toDateKey(date);
+}
+
+function parseDateKey(dateKey) {
+  const [year, month, day] = String(dateKey).split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function toDateKey(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 function sumCalories(entries) {
   return entries.reduce((total, entry) => total + Number(entry.calories || 0), 0);
+}
+
+function getPortionLabel(meal) {
+  const labels = meal.mealType === "pleasure" ? pleasurePortionLabels : portionLabels;
+  return labels[meal.portion] || labels.normal || "Normal";
 }
 
 function formatCalories(value) {
@@ -822,6 +1092,40 @@ function formatLiters(value) {
     minimumFractionDigits: value % 1 ? 1 : 0,
     maximumFractionDigits: 1
   })} L`;
+}
+
+function formatWeight(value) {
+  return `${Number(value || 0).toLocaleString("fr-FR", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 1
+  })} kg`;
+}
+
+function formatSignedWeight(value) {
+  const rounded = Number(value || 0);
+  const sign = rounded > 0 ? "+" : "";
+  return `${sign}${rounded.toLocaleString("fr-FR", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 1
+  })} kg`;
+}
+
+function formatSignedPercent(value) {
+  const rounded = Number(value || 0);
+  const sign = rounded > 0 ? "+" : "";
+  return `${sign}${rounded.toLocaleString("fr-FR", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 1
+  })} %`;
+}
+
+function formatDate(dateKey) {
+  if (!dateKey) return "-";
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  }).format(parseDateKey(dateKey));
 }
 
 function normalizeText(text) {
