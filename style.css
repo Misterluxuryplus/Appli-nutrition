@@ -403,7 +403,19 @@ textarea:focus {
   padding: 18px;
 }
 
+.day-block {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.day-block > h3 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
 .meal-moment-card h3,
+.meal-moment-card h4,
 .meal-moment-card p,
 .form-panel-heading h3,
 .water-panel h3,
@@ -412,6 +424,7 @@ textarea:focus {
 }
 
 .meal-moment-card h3,
+.meal-moment-card h4,
 .form-panel-heading h3,
 .water-panel h3 {
   font-size: 1.2rem;
@@ -443,6 +456,18 @@ textarea:focus {
 .meal-form-panel {
   margin: 0 0 20px;
   padding: 18px;
+}
+
+.photo-label {
+  width: 100%;
+}
+
+#meal-photo {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .form-panel-heading {
@@ -534,6 +559,101 @@ textarea:focus {
   color: var(--text);
   line-height: 1.5;
   font-weight: 700;
+}
+
+.profile-explain {
+  display: grid;
+  gap: 10px;
+  line-height: 1.5;
+}
+
+.profile-explain p {
+  margin: 0;
+}
+
+.profile-result-stack {
+  gap: 16px;
+}
+
+.profile-metric-card {
+  display: grid;
+  gap: 8px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.profile-metric-card:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.profile-metric-title,
+.profile-metric-card p {
+  margin: 0;
+}
+
+.profile-metric-title {
+  color: var(--text);
+  font-weight: 850;
+}
+
+.goal-result .profile-metric-card strong {
+  color: var(--text);
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.profile-metric-card p:not(.profile-metric-title) {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.profile-tip-card {
+  background: var(--surface-muted);
+  padding: 14px;
+  border: 0;
+  border-radius: var(--radius);
+}
+
+.example-day {
+  display: grid;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.example-day h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.example-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.example-grid article {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  background: var(--surface-muted);
+  border-radius: var(--radius);
+}
+
+.example-grid span {
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.example-grid strong {
+  font-size: 1.25rem;
+}
+
+.example-grid p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
 }
 
 .details-panel {
@@ -734,7 +854,7 @@ textarea:focus {
   left: 0;
   z-index: 20;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   width: min(100%, 760px);
   margin: 0 auto;
   padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
@@ -778,6 +898,10 @@ textarea:focus {
   }
 
   .summary-simple {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .example-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }

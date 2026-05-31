@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_NAME = "objectif-equilibre-v6";
+const CACHE_NAME = "objectif-equilibre-v8";
 const APP_ASSETS = [
   "./",
   "./index.html",

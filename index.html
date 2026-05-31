@@ -2,11 +2,11 @@
 <html lang="fr">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#2f6f63" />
     <meta
       name="description"
-      content="Objectif Équilibre aide à estimer ses besoins, ses repas et son activité avec bienveillance."
+      content="Objectif Équilibre aide à suivre simplement calories, repas, activité, pas et eau."
     />
     <title>Objectif Équilibre</title>
     <link rel="manifest" href="manifest.json" />
@@ -19,7 +19,7 @@
           <span class="brand-mark">OE</span>
           <span>
             <strong>Objectif Équilibre</strong>
-            <small>Simple, humain, ajustable</small>
+            <small>Simple, humain, mobile</small>
           </span>
         </button>
         <button class="icon-button" type="button" data-view-target="settings" aria-label="Réglages">
@@ -30,11 +30,9 @@
       <main>
         <section class="view is-active hero-view" id="home" aria-labelledby="home-title">
           <div class="hero-copy">
-            <p class="eyebrow">Sans jugement</p>
+            <p class="eyebrow">Sans culpabilisation</p>
             <h1 id="home-title">Objectif Équilibre</h1>
-            <p>
-              Avance vers ton objectif physique avec des repères simples, rapides et bienveillants.
-            </p>
+            <p>Suivez votre journée simplement : repas, calories dépensées, pas, eau et reste estimé.</p>
             <button class="primary-action" type="button" data-view-target="profile">Commencer</button>
           </div>
 
@@ -47,7 +45,7 @@
         <section class="view" id="profile" aria-labelledby="profile-title">
           <div class="section-heading">
             <p class="eyebrow">Profil</p>
-            <h2 id="profile-title">Tes repères</h2>
+            <h2 id="profile-title">Vos repères</h2>
           </div>
 
           <form class="stack" id="profile-form">
@@ -116,245 +114,201 @@
             <button class="primary-action" type="submit">Calculer mon objectif</button>
           </form>
 
-          <div class="result-panel goal-result" id="profile-results" hidden>
-            <section class="goal-focus" aria-live="polite">
-              <p class="goal-kicker">🎯 Ton objectif du jour</p>
-              <p class="goal-line">
-                Calories conseillées :
-                <strong id="target-result">-</strong><span>/jour</span>
-              </p>
-              <p class="goal-advice" id="goal-advice">Calcule ton objectif pour afficher un repère simple.</p>
+          <div class="result-panel goal-result profile-result-stack" id="profile-results" hidden>
+            <section class="profile-metric-card" aria-live="polite">
+              <p class="profile-metric-title">🔥 Métabolisme de base</p>
+              <strong id="bmr-result">-</strong>
+              <p id="bmr-sentence">-</p>
             </section>
 
-            <details class="details-panel">
-              <summary>Détails</summary>
-              <dl class="detail-list">
-                <div>
-                  <dt>Métabolisme de base</dt>
-                  <dd id="bmr-result">-</dd>
-                </div>
-                <div>
-                  <dt>Maintien estimé</dt>
-                  <dd id="maintenance-result">-</dd>
-                </div>
-              </dl>
-            </details>
+            <section class="profile-metric-card">
+              <p class="profile-metric-title">⚖️ Maintien</p>
+              <strong id="maintenance-result">-</strong>
+              <p id="maintenance-sentence">-</p>
+            </section>
+
+            <section class="profile-metric-card">
+              <p class="profile-metric-title">🎯 Objectif</p>
+              <strong id="target-result">-</strong>
+              <p id="target-sentence">-</p>
+            </section>
+
+            <section class="profile-metric-card profile-tip-card">
+              <p class="profile-metric-title">📉 Comment perdre du poids ?</p>
+              <p>Mangez légèrement moins que ce que votre corps dépense et restez actif.</p>
+              <p>La régularité est plus importante que la perfection.</p>
+            </section>
+
+            <section class="example-day" aria-labelledby="example-day-title">
+              <h3 id="example-day-title">Exemple de journée adaptée</h3>
+              <div class="example-grid">
+                <article>
+                  <span>Petit-déjeuner</span>
+                  <strong id="example-breakfast">-</strong>
+                  <p id="advice-breakfast">-</p>
+                </article>
+                <article>
+                  <span>Déjeuner</span>
+                  <strong id="example-lunch">-</strong>
+                  <p id="advice-lunch">-</p>
+                </article>
+                <article>
+                  <span>Dîner</span>
+                  <strong id="example-dinner">-</strong>
+                  <p id="advice-dinner">-</p>
+                </article>
+                <article>
+                  <span>Collation</span>
+                  <strong id="example-snack">-</strong>
+                  <p id="advice-snack">-</p>
+                </article>
+              </div>
+            </section>
           </div>
         </section>
 
-        <section class="view" id="meals" aria-labelledby="meals-title">
+        <section class="view" id="day" aria-labelledby="day-title">
           <div class="section-heading">
-            <p class="eyebrow">Repas</p>
-            <h2 id="meals-title">Tes repas du jour</h2>
+            <p class="eyebrow">Aujourd’hui</p>
+            <h2 id="day-title">Ma journée</h2>
           </div>
 
-          <div class="craving-panel">
-            <button class="secondary-action craving-toggle" type="button" id="craving-toggle">
-              J’ai eu une envie / un écart
-            </button>
-
-            <div class="craving-options" id="craving-options" hidden>
-              <p class="support-message">
-                Un écart n’annule pas tes efforts. Reprends simplement ton équilibre au prochain repas.
-              </p>
-              <div class="quick-choice-grid" aria-label="Choix rapide envie ou écart">
-                <button type="button" data-craving-type="Envie de sucre">Envie de sucre</button>
-                <button type="button" data-craving-type="Chocolat / bonbons">Chocolat / bonbons</button>
-                <button type="button" data-craving-type="Grignotage">Grignotage</button>
-                <button type="button" data-craving-type="Repas trop copieux">Repas trop copieux</button>
-              </div>
-              <p class="helper-text">
-                Si ce comportement te fait souffrir ou revient souvent, un professionnel peut t’aider.
-              </p>
-            </div>
-          </div>
-
-          <div class="meal-moment-grid">
-            <article class="meal-moment-card meal-breakfast">
-              <div>
-                <h3>☀️ Petit déjeuner</h3>
-                <p>Commence simple, selon ta faim.</p>
-              </div>
-              <button class="primary-action" type="button" data-meal-type="breakfast">Ajouter mon petit déjeuner</button>
-              <ul class="entry-list compact-list" data-meal-list="breakfast" aria-label="Petits déjeuners ajoutés"></ul>
-            </article>
-
-            <article class="meal-moment-card meal-lunch">
-              <div>
-                <h3>🍽️ Déjeuner</h3>
-                <p>Un repas noté rapidement suffit.</p>
-              </div>
-              <button class="primary-action" type="button" data-meal-type="lunch">Ajouter mon déjeuner</button>
-              <ul class="entry-list compact-list" data-meal-list="lunch" aria-label="Déjeuners ajoutés"></ul>
-            </article>
-
-            <article class="meal-moment-card meal-dinner">
-              <div>
-                <h3>🌙 Dîner</h3>
-                <p>Garde un repère calme pour finir la journée.</p>
-              </div>
-              <button class="primary-action" type="button" data-meal-type="dinner">Ajouter mon dîner</button>
-              <ul class="entry-list compact-list" data-meal-list="dinner" aria-label="Dîners ajoutés"></ul>
-            </article>
-
-            <article class="meal-moment-card meal-snack">
-              <div>
-                <h3>🍫 Collation / grignotage</h3>
-                <p>Tu peux aussi noter les petites prises.</p>
-              </div>
-              <button class="primary-action" type="button" data-meal-type="snack">Ajouter une collation</button>
-              <ul class="entry-list compact-list" data-meal-list="snack" aria-label="Collations ajoutées"></ul>
-            </article>
-          </div>
-
-          <form class="stack meal-form-panel" id="meal-form" hidden>
-            <input type="hidden" name="mealType" value="breakfast" />
-            <div class="form-panel-heading">
-              <p class="eyebrow">Ajout rapide</p>
-              <h3 id="selected-meal-title">Ajouter mon petit déjeuner</h3>
+          <section class="day-block" aria-labelledby="day-meals-title">
+            <h3 id="day-meals-title">Repas</h3>
+            <div class="meal-moment-grid">
+              <article class="meal-moment-card meal-breakfast">
+                <h4>☀️ Petit-déjeuner</h4>
+                <button class="primary-action" type="button" data-meal-type="breakfast">Ajouter mon petit-déjeuner</button>
+                <ul class="entry-list compact-list" data-meal-list="breakfast" aria-label="Petits-déjeuners ajoutés"></ul>
+              </article>
+              <article class="meal-moment-card meal-lunch">
+                <h4>🍽️ Déjeuner</h4>
+                <button class="primary-action" type="button" data-meal-type="lunch">Ajouter mon déjeuner</button>
+                <ul class="entry-list compact-list" data-meal-list="lunch" aria-label="Déjeuners ajoutés"></ul>
+              </article>
+              <article class="meal-moment-card meal-dinner">
+                <h4>🌙 Dîner</h4>
+                <button class="primary-action" type="button" data-meal-type="dinner">Ajouter mon dîner</button>
+                <ul class="entry-list compact-list" data-meal-list="dinner" aria-label="Dîners ajoutés"></ul>
+              </article>
+              <article class="meal-moment-card meal-snack">
+                <h4>🍫 Collation</h4>
+                <button class="primary-action" type="button" data-meal-type="snack">Ajouter une collation</button>
+                <ul class="entry-list compact-list" data-meal-list="snack" aria-label="Collations ajoutées"></ul>
+              </article>
             </div>
 
-            <label>
-              <span>Décris ton repas</span>
-              <textarea
-                name="description"
-                rows="4"
-                placeholder="Ex : riz, poulet, légumes, yaourt"
-                required
-              ></textarea>
-            </label>
+            <form class="stack meal-form-panel" id="meal-form" hidden>
+              <input type="hidden" name="mealType" value="breakfast" />
+              <div class="form-panel-heading">
+                <p class="eyebrow">Ajout repas</p>
+                <h3 id="selected-meal-title">Ajouter mon petit-déjeuner</h3>
+              </div>
 
-            <div class="inline-actions">
-              <button class="secondary-action" type="button" id="voice-button">
-                <span aria-hidden="true">🎙</span>
-                Micro
-              </button>
-              <p class="helper-text" id="voice-status">Reconnaissance vocale si disponible.</p>
-            </div>
+              <label>
+                <span>Ce que vous avez mangé</span>
+                <textarea name="description" rows="4" placeholder="Ex : riz, poulet, légumes, yaourt" required></textarea>
+              </label>
 
-            <fieldset>
-              <legend>Taille du repas</legend>
-              <div class="segmented-control">
+              <label class="secondary-action photo-label" for="meal-photo">📸 Ajouter une photo du repas</label>
+              <input id="meal-photo" name="photo" type="file" accept="image/*" capture="environment" />
+              <p class="helper-text" id="photo-status" hidden>Analyse photo bientôt disponible.</p>
+
+              <div class="inline-actions">
+                <button class="secondary-action" type="button" id="voice-button">🎙 Micro</button>
+                <p class="helper-text" id="voice-status">Reconnaissance vocale si disponible.</p>
+              </div>
+
+              <fieldset>
+                <legend>Taille du repas</legend>
+                <div class="segmented-control">
+                  <label>
+                    <input type="radio" name="portion" value="light" required />
+                    <span>Léger</span>
+                  </label>
+                  <label>
+                    <input type="radio" name="portion" value="normal" checked required />
+                    <span>Normal</span>
+                  </label>
+                  <label>
+                    <input type="radio" name="portion" value="hearty" required />
+                    <span>Copieux</span>
+                  </label>
+                </div>
+              </fieldset>
+
+              <button class="primary-action" type="submit">Estimer le repas</button>
+            </form>
+          </section>
+
+          <section class="day-block" aria-labelledby="sport-title">
+            <h3 id="sport-title">Calories dépensées</h3>
+            <form class="stack" id="sport-form">
+              <label>
+                <span>Activité</span>
+                <select name="activityType" required>
+                  <option value="">Choisir</option>
+                  <option value="strength">Musculation</option>
+                  <option value="walk">Marche</option>
+                  <option value="bike">Vélo</option>
+                  <option value="run">Course</option>
+                  <option value="swim">Natation</option>
+                  <option value="housework">Ménage</option>
+                  <option value="gardening">Jardinage</option>
+                  <option value="pingpong">Ping-pong</option>
+                  <option value="other">Autre</option>
+                </select>
+              </label>
+
+              <div class="field-grid">
                 <label>
-                  <input type="radio" name="portion" value="light" required />
-                  <span>Léger</span>
+                  <span>Durée en minutes</span>
+                  <input type="number" name="duration" min="1" max="300" inputmode="numeric" placeholder="45" />
                 </label>
                 <label>
-                  <input type="radio" name="portion" value="normal" checked required />
-                  <span>Normal</span>
-                </label>
-                <label>
-                  <input type="radio" name="portion" value="hearty" required />
-                  <span>Copieux</span>
+                  <span>Calories brûlées connues</span>
+                  <input type="number" name="manualCalories" min="0" max="3000" inputmode="numeric" placeholder="Optionnel" />
                 </label>
               </div>
-            </fieldset>
 
-            <fieldset>
-              <legend>Sensation après repas</legend>
-              <div class="segmented-control">
-                <label>
-                  <input type="radio" name="feeling" value="hungry" required />
-                  <span>Encore faim</span>
-                </label>
-                <label>
-                  <input type="radio" name="feeling" value="good" checked required />
-                  <span>Bien</span>
-                </label>
-                <label>
-                  <input type="radio" name="feeling" value="full" required />
-                  <span>Trop plein</span>
-                </label>
-              </div>
-            </fieldset>
+              <fieldset>
+                <legend>Intensité</legend>
+                <div class="segmented-control">
+                  <label>
+                    <input type="radio" name="intensity" value="light" required />
+                    <span>Légère</span>
+                  </label>
+                  <label>
+                    <input type="radio" name="intensity" value="normal" checked required />
+                    <span>Normale</span>
+                  </label>
+                  <label>
+                    <input type="radio" name="intensity" value="intense" required />
+                    <span>Intense</span>
+                  </label>
+                </div>
+              </fieldset>
 
-            <button class="primary-action" type="submit">Estimer le repas</button>
-          </form>
+              <button class="primary-action" type="submit">Ajouter l’activité</button>
+            </form>
+            <ul class="entry-list" id="sport-list" aria-label="Sports ajoutés"></ul>
+          </section>
 
-          <ul class="entry-list" id="craving-list" aria-label="Envies et écarts notés"></ul>
-        </section>
-
-        <section class="view" id="sport" aria-labelledby="sport-title">
-          <div class="section-heading">
-            <p class="eyebrow">Sport</p>
-            <h2 id="sport-title">Ajouter une activité</h2>
-          </div>
-
-          <div class="steps-panel">
+          <section class="day-block steps-panel" aria-labelledby="steps-title">
             <div class="steps-heading">
-              <h3>🚶 Pas quotidiens</h3>
-              <p>Même sans salle, marcher aide beaucoup.</p>
+              <h3 id="steps-title">🚶 Marche / pas du jour</h3>
+              <p id="steps-message">Même sans salle, marcher aide beaucoup.</p>
             </div>
-
             <label>
               <span>Nombre de pas</span>
-              <input type="number" id="steps-input" min="0" max="60000" step="100" inputmode="numeric" placeholder="5000" />
+              <input type="number" id="steps-input" min="0" max="60000" step="100" inputmode="numeric" placeholder="8000" />
             </label>
-
-            <div class="quick-choice-grid steps-choices" aria-label="Choix rapides de pas quotidiens">
-              <button type="button" data-steps="3000">3000 pas</button>
-              <button type="button" data-steps="5000">5000 pas</button>
-              <button type="button" data-steps="8000">8000 pas</button>
-              <button type="button" data-steps="10000">10000 pas</button>
-              <button type="button" data-steps="15000">15000 pas</button>
-            </div>
-
             <p class="steps-estimate" id="steps-estimate">0 pas ≈ 0 kcal</p>
-            <p class="support-message" id="steps-message">Chaque mouvement compte 👍</p>
-          </div>
+          </section>
 
-          <form class="stack" id="sport-form">
-            <label>
-              <span>Activité</span>
-              <select name="activityType" required>
-                <option value="">Choisir</option>
-                <option value="strength">Musculation</option>
-                <option value="walk">Marche</option>
-                <option value="bike">Vélo</option>
-                <option value="pingpong">Ping-pong</option>
-                <option value="cardio">Cardio</option>
-                <option value="other">Autre</option>
-              </select>
-            </label>
-
-            <label>
-              <span>Durée en minutes</span>
-              <input type="number" name="duration" min="5" max="300" inputmode="numeric" placeholder="45" required />
-            </label>
-
-            <fieldset>
-              <legend>Intensité</legend>
-              <div class="segmented-control">
-                <label>
-                  <input type="radio" name="intensity" value="light" required />
-                  <span>Légère</span>
-                </label>
-                <label>
-                  <input type="radio" name="intensity" value="normal" checked required />
-                  <span>Normale</span>
-                </label>
-                <label>
-                  <input type="radio" name="intensity" value="intense" required />
-                  <span>Intense</span>
-                </label>
-              </div>
-            </fieldset>
-
-            <button class="primary-action" type="submit">Estimer le sport</button>
-          </form>
-
-          <ul class="entry-list" id="sport-list" aria-label="Sports ajoutés"></ul>
-        </section>
-
-        <section class="view" id="summary" aria-labelledby="summary-title">
-          <div class="section-heading">
-            <p class="eyebrow">Journée</p>
-            <h2 id="summary-title">Ton résumé</h2>
-          </div>
-
-          <div class="water-panel">
+          <section class="day-block water-panel" aria-labelledby="water-title">
             <div>
-              <h3>💧 Pense à bien boire de l’eau aujourd’hui.</h3>
+              <h3 id="water-title">💧 Eau</h3>
               <p id="water-message">Boire aide aussi la satiété et l’énergie.</p>
             </div>
             <div class="quick-choice-grid water-choices" aria-label="Suivi hydratation">
@@ -364,49 +318,50 @@
               <button type="button" data-water="2">2 L</button>
               <button type="button" data-water="2.5">2,5 L</button>
             </div>
-          </div>
+          </section>
 
-          <div class="summary-grid summary-simple">
-            <article class="summary-card-food">
-              <span class="summary-icon" aria-hidden="true">🍽️</span>
-              <span>Calories mangées</span>
-              <strong id="summary-food">0 kcal</strong>
-            </article>
-            <article class="summary-card-sport">
-              <span class="summary-icon" aria-hidden="true">🏃</span>
-              <span>Sport</span>
-              <strong id="summary-sport">0 kcal brûlées</strong>
-            </article>
-            <article class="summary-card-steps">
-              <span class="summary-icon" aria-hidden="true">🚶</span>
-              <span>Marche / pas</span>
-              <strong id="summary-steps">0 kcal</strong>
-            </article>
-            <article class="summary-card-water">
-              <span class="summary-icon" aria-hidden="true">💧</span>
-              <span>Eau</span>
-              <strong id="summary-water">0 L</strong>
-            </article>
-            <article class="summary-card-balance">
-              <span class="summary-icon" aria-hidden="true">🎯</span>
-              <span>Reste estimé</span>
-              <strong id="summary-balance">-</strong>
-            </article>
-          </div>
-
-          <div class="progress-panel" aria-label="Progression des calories mangées vers l'objectif du jour">
-            <div class="progress-meta">
-              <span>0 kcal</span>
-              <span id="progress-target-label">Objectif du jour</span>
+          <section class="day-block" aria-labelledby="day-summary-title">
+            <h3 id="day-summary-title">Résumé du jour</h3>
+            <div class="summary-grid summary-simple">
+              <article class="summary-card-food">
+                <span class="summary-icon" aria-hidden="true">🍽</span>
+                <span>Calories mangées</span>
+                <strong id="summary-food">0 kcal</strong>
+              </article>
+              <article class="summary-card-sport">
+                <span class="summary-icon" aria-hidden="true">🏃</span>
+                <span>Sport</span>
+                <strong id="summary-sport">0 kcal</strong>
+              </article>
+              <article class="summary-card-steps">
+                <span class="summary-icon" aria-hidden="true">🚶</span>
+                <span>Pas / marche</span>
+                <strong id="summary-steps">0 kcal</strong>
+              </article>
+              <article class="summary-card-water">
+                <span class="summary-icon" aria-hidden="true">💧</span>
+                <span>Eau</span>
+                <strong id="summary-water">0 L</strong>
+              </article>
+              <article class="summary-card-balance">
+                <span class="summary-icon" aria-hidden="true">🎯</span>
+                <span>Reste estimé</span>
+                <strong id="summary-balance">-</strong>
+              </article>
             </div>
-            <div class="progress-track">
-              <div class="progress-fill" id="calorie-progress"></div>
-            </div>
-          </div>
 
-          <p class="kind-message" id="kind-message">
-            Remplis ton profil pour obtenir une estimation adaptée.
-          </p>
+            <div class="progress-panel" aria-label="Progression des calories mangées vers l'objectif du jour">
+              <div class="progress-meta">
+                <span>0 kcal</span>
+                <span id="progress-target-label">Objectif du jour</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" id="calorie-progress"></div>
+              </div>
+            </div>
+
+            <p class="kind-message" id="kind-message">Remplissez votre profil pour obtenir une estimation adaptée.</p>
+          </section>
         </section>
 
         <section class="view" id="settings" aria-labelledby="settings-title">
@@ -416,10 +371,7 @@
           </div>
 
           <div class="settings-panel">
-            <p>
-              Les informations restent sur cet appareil via localStorage. Le bouton ci-dessous efface le profil, les
-              repas, le sport, l’historique et toutes les données locales.
-            </p>
+            <p>Les informations restent sur cet appareil via localStorage.</p>
             <button class="danger-action" type="button" id="reset-button">Reset test</button>
           </div>
         </section>
@@ -430,17 +382,13 @@
           <span aria-hidden="true">◎</span>
           Profil
         </button>
-        <button type="button" data-view-target="meals">
-          <span aria-hidden="true">＋</span>
-          Repas
-        </button>
-        <button type="button" data-view-target="sport">
-          <span aria-hidden="true">↗</span>
-          Sport
-        </button>
-        <button type="button" data-view-target="summary">
+        <button type="button" data-view-target="day">
           <span aria-hidden="true">◷</span>
-          Résumé
+          Ma journée
+        </button>
+        <button type="button" data-view-target="settings">
+          <span aria-hidden="true">⚙</span>
+          Réglages
         </button>
       </nav>
     </div>
