@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_NAME = "objectif-equilibre-v8";
+const CACHE_NAME = "mycoachnutri-v1";
 const APP_ASSETS = [
   "./",
   "./index.html",
@@ -23,7 +23,10 @@ self.addEventListener("activate", (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames
-          .filter((cacheName) => cacheName !== CACHE_NAME)
+          .filter((cacheName) => {
+            const isAppCache = cacheName.startsWith("objectif-equilibre-") || cacheName.startsWith("mycoachnutri-");
+            return isAppCache && cacheName !== CACHE_NAME;
+          })
           .map((cacheName) => caches.delete(cacheName))
       );
     })

@@ -91,6 +91,7 @@ button {
   height: 44px;
   place-items: center;
   color: #fff;
+  font-size: 0.78rem;
   font-weight: 800;
   background: var(--primary);
   border-radius: 50%;
@@ -650,10 +651,35 @@ textarea:focus {
   font-size: 1.25rem;
 }
 
-.example-grid p {
+.example-grid p,
+.food-advice {
   margin: 0;
   color: var(--muted);
   line-height: 1.45;
+}
+
+.food-advice {
+  display: grid;
+  gap: 12px;
+}
+
+.food-advice strong {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.food-advice ul {
+  display: grid;
+  gap: 5px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.food-advice li {
+  color: var(--muted);
 }
 
 .details-panel {

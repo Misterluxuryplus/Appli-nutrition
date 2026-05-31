@@ -366,10 +366,22 @@ function renderExampleDay(target) {
   document.querySelector("#example-lunch").textContent = formatCalories(split.lunch);
   document.querySelector("#example-dinner").textContent = formatCalories(split.dinner);
   document.querySelector("#example-snack").textContent = formatCalories(split.snack);
-  document.querySelector("#advice-breakfast").innerHTML = `1 produit laitier type skyr ou fromage blanc<br>1 fruit<br>${bread} g de pain complet ou flocons d’avoine`;
-  document.querySelector("#advice-lunch").innerHTML = `${protein} g de viande, poisson, œufs ou équivalent<br>Légumes à volonté<br>${lunchStarch} g de féculents cuits<br>1 yaourt ou fruit si besoin`;
-  document.querySelector("#advice-dinner").innerHTML = `${protein} g de viande, poisson, œufs ou équivalent<br>Légumes à volonté<br>${dinnerStarch} g de féculents cuits selon la faim<br>1 produit laitier ou fruit si besoin`;
-  document.querySelector("#advice-snack").innerHTML = "1 fruit<br>1 skyr, fromage blanc ou yaourt nature";
+  document.querySelector("#advice-breakfast").innerHTML = buildAdviceHtml(
+    ["🥣 Skyr ou fromage blanc", "🍌 Fruit", `🍞 ${bread} g de pain complet ou flocons d’avoine`],
+    ["🥚 Œufs", "🥛 Yaourt nature", "🍎 Autre fruit"]
+  );
+  document.querySelector("#advice-lunch").innerHTML = buildAdviceHtml(
+    [`🍗 ${protein} g de poulet, dinde, poisson, œufs ou viande halal possible`, "🥦 Légumes", `🍚 ${lunchStarch} g de riz, pâtes, pommes de terre ou semoule`],
+    ["🫘 Lentilles, pois chiches ou haricots rouges", "🐟 Thon ou saumon", "🥗 Grande salade complète"]
+  );
+  document.querySelector("#advice-dinner").innerHTML = buildAdviceHtml(
+    [`🐟 ${protein} g de poisson, œufs, poulet, tofu ou légumineuses`, "🥦 Légumes", `🥔 ${dinnerStarch} g de féculents selon la faim`],
+    ["🍳 Omelette", "🫘 Lentilles ou pois chiches", "🥣 Soupe + produit laitier"]
+  );
+  document.querySelector("#advice-snack").innerHTML = buildAdviceHtml(
+    ["🍎 Fruit", "🥣 Skyr, fromage blanc ou yaourt nature"],
+    ["🥜 Quelques amandes", "🍌 Banane", "🥛 Lait ou boisson sans sucre"]
+  );
 }
 
 function renderMeals() {
@@ -571,6 +583,19 @@ function range(min, max, scale) {
   const low = Math.round((min * scale) / 5) * 5;
   const high = Math.round((max * scale) / 5) * 5;
   return `${low} à ${high}`;
+}
+
+function buildAdviceHtml(takeItems, replaceItems) {
+  return `
+    <div>
+      <strong>✅ Tu peux prendre :</strong>
+      <ul>${takeItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+    </div>
+    <div>
+      <strong>🔁 Tu peux remplacer par :</strong>
+      <ul>${replaceItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+    </div>
+  `;
 }
 
 function escapeHtml(value) {

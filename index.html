@@ -4,11 +4,15 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#2f6f63" />
+    <meta name="application-name" content="MyCoachNutri" />
+    <meta name="apple-mobile-web-app-title" content="MyCoachNutri" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta
       name="description"
-      content="Objectif Équilibre aide à suivre simplement calories, repas, activité, pas et eau."
+      content="MyCoachNutri aide à suivre simplement calories, repas, activité, pas et eau."
     />
-    <title>Objectif Équilibre</title>
+    <title>MyCoachNutri</title>
     <link rel="manifest" href="manifest.json" />
     <link rel="stylesheet" href="style.css" />
   </head>
@@ -16,9 +20,9 @@
     <div class="app-shell">
       <header class="topbar" aria-label="Navigation principale">
         <button class="brand-button" type="button" data-view-target="home" aria-label="Retour à l'accueil">
-          <span class="brand-mark">OE</span>
+          <span class="brand-mark">MCN</span>
           <span>
-            <strong>Objectif Équilibre</strong>
+            <strong>MyCoachNutri</strong>
             <small>Simple, humain, mobile</small>
           </span>
         </button>
@@ -31,7 +35,7 @@
         <section class="view is-active hero-view" id="home" aria-labelledby="home-title">
           <div class="hero-copy">
             <p class="eyebrow">Sans culpabilisation</p>
-            <h1 id="home-title">Objectif Équilibre</h1>
+            <h1 id="home-title">MyCoachNutri</h1>
             <p>Suivez votre journée simplement : repas, calories dépensées, pas, eau et reste estimé.</p>
             <button class="primary-action" type="button" data-view-target="profile">Commencer</button>
           </div>
@@ -145,22 +149,22 @@
                 <article>
                   <span>Petit-déjeuner</span>
                   <strong id="example-breakfast">-</strong>
-                  <p id="advice-breakfast">-</p>
+                  <div class="food-advice" id="advice-breakfast">-</div>
                 </article>
                 <article>
                   <span>Déjeuner</span>
                   <strong id="example-lunch">-</strong>
-                  <p id="advice-lunch">-</p>
+                  <div class="food-advice" id="advice-lunch">-</div>
                 </article>
                 <article>
                   <span>Dîner</span>
                   <strong id="example-dinner">-</strong>
-                  <p id="advice-dinner">-</p>
+                  <div class="food-advice" id="advice-dinner">-</div>
                 </article>
                 <article>
                   <span>Collation</span>
                   <strong id="example-snack">-</strong>
-                  <p id="advice-snack">-</p>
+                  <div class="food-advice" id="advice-snack">-</div>
                 </article>
               </div>
             </section>
@@ -312,11 +316,13 @@
               <p id="water-message">Boire aide aussi la satiété et l’énergie.</p>
             </div>
             <div class="quick-choice-grid water-choices" aria-label="Suivi hydratation">
+              <button type="button" data-water="0">0 L</button>
               <button type="button" data-water="0.5">0,5 L</button>
               <button type="button" data-water="1">1 L</button>
               <button type="button" data-water="1.5">1,5 L</button>
               <button type="button" data-water="2">2 L</button>
               <button type="button" data-water="2.5">2,5 L</button>
+              <button type="button" data-water="3">3 L</button>
             </div>
           </section>
 
