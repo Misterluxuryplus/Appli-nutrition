@@ -13,11 +13,16 @@
       content="MyCoachNutri aide à suivre simplement calories, repas, activité, pas et eau."
     />
     <title>MyCoachNutri</title>
-    <link rel="manifest" href="manifest.json" />
-    <link rel="stylesheet" href="style.css" />
+    <link rel="manifest" href="manifest.json?v=2" />
+    <link rel="stylesheet" href="style.css?v=2" />
   </head>
   <body>
     <div class="app-shell">
+      <div class="update-banner" id="update-banner" hidden>
+        <span>Nouvelle version disponible. Cliquez pour mettre à jour.</span>
+        <button type="button" id="update-button">Mettre à jour</button>
+      </div>
+
       <header class="topbar" aria-label="Navigation principale">
         <button class="brand-button" type="button" data-view-target="home" aria-label="Retour à l'accueil">
           <span class="brand-mark">MCN</span>
@@ -399,6 +404,6 @@
       </nav>
     </div>
 
-    <script src="app.js" defer></script>
+    <script src="app.js?v=2" defer></script>
   </body>
 </html>

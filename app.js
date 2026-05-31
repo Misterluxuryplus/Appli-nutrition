@@ -33,6 +33,11 @@ const stepsInput = document.querySelector("#steps-input");
 const stepsEstimate = document.querySelector("#steps-estimate");
 const stepsMessage = document.querySelector("#steps-message");
 const waterMessage = document.querySelector("#water-message");
+const updateBanner = document.querySelector("#update-banner");
+const updateButton = document.querySelector("#update-button");
+
+let pendingServiceWorker = null;
+let refreshingForUpdate = false;
 
 const mealLabels = {
   breakfast: "Ajouter mon petit-déjeuner",
@@ -534,10 +539,58 @@ function setupSpeechRecognition() {
 
 function registerServiceWorker() {
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("service-worker.js").catch(() => {
+    navigator.serviceWorker.register("service-worker.js").then((registration) => {
+      watchForServiceWorkerUpdate(registration);
+    }).catch(() => {
       // L'application reste utilisable si le navigateur bloque le service worker.
     });
   }
+}
+
+// Détecte une nouvelle version de la PWA et laisse l'utilisateur recharger proprement.
+function watchForServiceWorkerUpdate(registration) {
+  if (registration.waiting) {
+    showUpdateBanner(registration.waiting);
+  }
+
+  // Demande au navigateur de vérifier le service worker au chargement de l'app.
+  registration.update();
+
+  registration.addEventListener("updatefound", () => {
+    const newWorker = registration.installing;
+    if (!newWorker) return;
+
+    newWorker.addEventListener("statechange", () => {
+      if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+        showUpdateBanner(newWorker);
+      }
+      if (newWorker.state === "activated" && navigator.serviceWorker.controller && !refreshingForUpdate) {
+        showUpdateBanner(null);
+      }
+    });
+  });
+
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!refreshingForUpdate) {
+      showUpdateBanner(null);
+      return;
+    }
+    window.location.reload();
+  });
+
+  updateButton.addEventListener("click", () => {
+    refreshingForUpdate = true;
+    if (pendingServiceWorker) {
+      pendingServiceWorker.postMessage({ type: "SKIP_WAITING" });
+      return;
+    }
+    window.location.reload();
+  });
+}
+
+function showUpdateBanner(worker) {
+  pendingServiceWorker = worker;
+  updateBanner.hidden = false;
 }
 
 function saveState() {

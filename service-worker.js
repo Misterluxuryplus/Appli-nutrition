@@ -1,20 +1,22 @@
 "use strict";
 
-const CACHE_NAME = "mycoachnutri-v1";
-const APP_ASSETS = [
+const CACHE_NAME = "mycoachnutri-v2";
+const CORE_ASSETS = [
   "./",
   "./index.html",
-  "./style.css",
-  "./app.js",
-  "./manifest.json"
+  "./style.css?v=2",
+  "./app.js?v=2",
+  "./manifest.json?v=2"
 ];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(APP_ASSETS);
+      return cache.addAll(CORE_ASSETS);
     })
   );
+
+  // Force le nouveau service worker à passer en attente d'activation immédiatement.
   self.skipWaiting();
 });
 
@@ -31,15 +33,63 @@ self.addEventListener("activate", (event) => {
       );
     })
   );
+
+  // Prend le contrôle des onglets ouverts sans attendre leur fermeture.
   self.clients.claim();
+});
+
+self.addEventListener("message", (event) => {
+  if (event.data?.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      return cachedResponse || fetch(event.request);
-    })
-  );
+  if (isCoreRequest(event.request)) {
+    event.respondWith(networkFirst(event.request));
+    return;
+  }
+
+  event.respondWith(cacheFirst(event.request));
 });
+
+function isCoreRequest(request) {
+  const url = new URL(request.url);
+  const corePaths = ["/", "/index.html", "/style.css", "/app.js", "/manifest.json"];
+  return request.mode === "navigate" || corePaths.some((path) => url.pathname.endsWith(path));
+}
+
+// Fichiers principaux : internet d'abord pour récupérer GitHub Pages à jour, cache seulement si hors ligne.
+async function networkFirst(request) {
+  const cache = await caches.open(CACHE_NAME);
+
+  try {
+    const freshResponse = await fetch(request, { cache: "no-store" });
+    if (freshResponse.ok) {
+      await cache.put(request, freshResponse.clone());
+    }
+    return freshResponse;
+  } catch {
+    const cachedResponse = await cache.match(request, { ignoreSearch: true });
+    return cachedResponse || cache.match("./index.html");
+  }
+}
+
+// Autres ressources : cache d'abord pour garder un usage hors ligne simple.
+async function cacheFirst(request) {
+  const cache = await caches.open(CACHE_NAME);
+  const cachedResponse = await cache.match(request);
+  if (cachedResponse) return cachedResponse;
+
+  try {
+    const networkResponse = await fetch(request);
+    if (networkResponse.ok) {
+      await cache.put(request, networkResponse.clone());
+    }
+    return networkResponse;
+  } catch {
+    return new Response("", { status: 504, statusText: "Offline" });
+  }
+}

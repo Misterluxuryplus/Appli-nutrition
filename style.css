@@ -57,6 +57,35 @@ button {
   padding: 16px 16px 96px;
 }
 
+.update-banner {
+  position: sticky;
+  top: 8px;
+  z-index: 40;
+  display: grid;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 12px;
+  color: var(--text);
+  background: #fff8df;
+  border: 1px solid rgba(213, 139, 69, 0.35);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.update-banner span {
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.update-banner button {
+  min-height: 46px;
+  color: #fff;
+  font-weight: 850;
+  background: var(--primary);
+  border: 0;
+  border-radius: var(--radius);
+}
+
 .topbar {
   position: sticky;
   top: 0;
