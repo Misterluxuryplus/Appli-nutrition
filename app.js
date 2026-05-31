@@ -1,34 +1,6 @@
 "use strict";
 
 const STORAGE_KEY = "objectif-equilibre-v1";
-const PHOTO_AI_ENDPOINT = window.MYCOACHNUTRI_PHOTO_AI_ENDPOINT || "";
-const PHOTO_AI_PROMPT =
-  `Analyse cette image.
-Dis d'abord si elle contient au moins un aliment ou une boisson consommable.
-Un fruit seul, comme une poire, une pomme ou une banane, est une photo conforme.
-Une boisson seule est aussi conforme.
-Si oui, estime les calories totales.
-Si non, indique photo non conforme.
-
-Réponds uniquement en JSON, par exemple :
-{
-  "isFood": true,
-  "name": "Poire",
-  "calories": 80,
-  "confidence": "high",
-  "message": "Aliment détecté : poire"
-}`;
-
-// Tests de conformité attendus pour l'analyse photo IA.
-const PHOTO_ANALYSIS_TESTS = [
-  { label: "poire seule", expected: "conforme" },
-  { label: "pomme seule", expected: "conforme" },
-  { label: "banane seule", expected: "conforme" },
-  { label: "yaourt seul", expected: "conforme" },
-  { label: "verre de jus", expected: "conforme" },
-  { label: "écran d’ordinateur", expected: "non conforme" },
-  { label: "canapé", expected: "non conforme" }
-];
 
 const defaultState = {
   profile: null,
@@ -71,7 +43,6 @@ const mealSubmitButton = document.querySelector("#meal-submit-button");
 const mealEstimateStatus = document.querySelector("#meal-estimate-status");
 const barcodeScanInput = document.querySelector("#barcode-scan-input");
 const barcodeStatus = document.querySelector("#barcode-status");
-const barcodeManualSearch = document.querySelector("#barcode-manual-search");
 const barcodeResult = document.querySelector("#barcode-result");
 const barcodeProductName = document.querySelector("#barcode-product-name");
 const barcodeProductBrand = document.querySelector("#barcode-product-brand");
@@ -80,18 +51,6 @@ const barcodeProductServing = document.querySelector("#barcode-product-serving")
 const barcodeCustomQuantity = document.querySelector("#barcode-custom-quantity");
 const barcodeQuantityStatus = document.querySelector("#barcode-quantity-status");
 const barcodeAddDay = document.querySelector("#barcode-add-day");
-const photoInputs = document.querySelectorAll(".photo-input");
-const photoStatus = document.querySelector("#photo-status");
-const photoAnalysis = document.querySelector("#photo-analysis");
-const photoPreview = document.querySelector("#photo-preview");
-const photoResult = document.querySelector("#photo-result");
-const photoCalories = document.querySelector("#photo-calories");
-const photoDescription = document.querySelector("#photo-description");
-const photoFeedback = document.querySelector("#photo-feedback");
-const photoFeedbackTitle = document.querySelector("#photo-feedback-title");
-const photoFeedbackMessage = document.querySelector("#photo-feedback-message");
-const photoValidate = document.querySelector("#photo-validate");
-const photoEdit = document.querySelector("#photo-edit");
 const stepsInput = document.querySelector("#steps-input");
 const stepsEstimate = document.querySelector("#steps-estimate");
 const stepsMessage = document.querySelector("#steps-message");
@@ -108,8 +67,6 @@ const updateButton = document.querySelector("#update-button");
 
 let pendingServiceWorker = null;
 let refreshingForUpdate = false;
-let currentPhotoAnalysis = null;
-let currentPhotoObjectUrl = null;
 let currentScannedProduct = null;
 let currentProductQuantity = null;
 
@@ -311,22 +268,18 @@ function bindMeals() {
     const description = String(formData.get("description")).trim();
     const mealType = formData.get("mealType") || "breakfast";
     const portion = formData.get("portion");
-    const manualCalories = Number(formData.get("manualCalories") || 0);
-    const barcode = String(formData.get("barcode") || "").trim();
     mealEstimateStatus.textContent = "Estimation approximative.";
     mealSubmitButton.disabled = true;
     mealSubmitButton.textContent = "Estimation...";
 
-    const estimate = manualCalories
-      ? { found: true, calories: Math.round(manualCalories), details: "Correction manuelle. Estimation approximative." }
-      : await estimateMealCalories(description, portion, barcode);
+    const estimate = estimateMealCalories(description, portion);
 
     mealSubmitButton.disabled = false;
     configureMealForm(mealType);
 
     if (!estimate.found) {
       mealEstimateStatus.textContent =
-        "Aliment non trouvé. Essayez d'ajouter une quantité, un code-barres ou un nom plus précis. Estimation approximative.";
+        "Aliment non trouvé. Essayez d'ajouter une quantité ou un nom plus précis. Estimation approximative.";
       return;
     }
 
@@ -344,23 +297,13 @@ function bindMeals() {
     mealForm.elements.mealType.value = mealType;
     mealForm.elements.portion.value = "normal";
     mealForm.hidden = true;
-    resetPhotoAnalysis();
+    resetScannedProduct();
     saveState();
     render();
   });
 
-  photoInputs.forEach((input) => {
-    input.addEventListener("change", () => {
-      handlePhotoSelection(input.files?.[0]);
-    });
-  });
-
   barcodeScanInput.addEventListener("change", () => {
     handleBarcodeScan(barcodeScanInput.files?.[0]);
-  });
-
-  barcodeManualSearch.addEventListener("click", () => {
-    handleBarcodeManualSearch();
   });
 
   document.querySelectorAll("[data-product-quantity]").forEach((button) => {
@@ -377,13 +320,6 @@ function bindMeals() {
     addScannedProductToDay();
   });
 
-  photoValidate.addEventListener("click", () => {
-    validatePhotoMeal();
-  });
-
-  photoEdit.addEventListener("click", () => {
-    editPhotoMealManually();
-  });
 }
 
 function bindSport() {
@@ -434,7 +370,6 @@ function bindReset() {
     mealForm.reset();
     sportForm.reset();
     mealForm.hidden = true;
-    resetPhotoAnalysis();
     stepsInput.value = "";
     render();
     showView("home");
@@ -446,7 +381,6 @@ function openMealForm(mealType) {
   mealForm.elements.mealType.value = mealType;
   configureMealForm(mealType);
   resetScannedProduct();
-  resetPhotoAnalysis();
   mealForm.scrollIntoView({ behavior: "smooth", block: "start" });
   mealDescription.focus();
 }
@@ -471,14 +405,13 @@ async function handleBarcodeScan(file) {
     barcodeStatus.textContent = "Lecture du code-barres...";
     const value = await detectBarcodeFromImage(file);
     if (!value) {
-      barcodeStatus.textContent = "Code-barres non détecté. Essayez une photo plus nette ou saisissez le code.";
+      barcodeStatus.textContent = "Code-barres non détecté. Essayez une photo plus nette du code-barres.";
       return;
     }
 
-    mealForm.elements.barcode.value = value;
     await loadScannedProduct(value);
   } catch {
-    barcodeStatus.textContent = "Caméra ou scanner indisponible. Entrez le code-barres manuellement.";
+    barcodeStatus.textContent = "Caméra ou scanner indisponible. Réessayez avec une photo plus nette du code-barres.";
   } finally {
     barcodeScanInput.value = "";
   }
@@ -526,21 +459,12 @@ function ensureZxingBrowser() {
   });
 }
 
-async function handleBarcodeManualSearch() {
-  const barcode = String(mealForm.elements.barcode.value || "").trim();
-  if (!barcode) {
-    barcodeStatus.textContent = "Entrez le code-barres manuellement.";
-    return;
-  }
-  await loadScannedProduct(barcode);
-}
-
 async function loadScannedProduct(barcode) {
   barcodeStatus.textContent = "Recherche dans Open Food Facts...";
   resetScannedProduct();
   const product = await fetchOpenFoodFactsProduct(barcode);
   if (!product.found) {
-    barcodeStatus.textContent = "Produit non trouvé dans Open Food Facts. Essayez de saisir le produit manuellement.";
+    barcodeStatus.textContent = "Produit non trouvé dans Open Food Facts.";
     return;
   }
 
@@ -600,7 +524,6 @@ function addScannedProductToDay() {
   mealForm.elements.portion.value = "normal";
   mealForm.hidden = true;
   resetScannedProduct();
-  resetPhotoAnalysis();
   saveState();
   render();
 }
@@ -613,177 +536,7 @@ function resetScannedProduct() {
   barcodeQuantityStatus.textContent = "Choisissez une quantité pour calculer les calories.";
 }
 
-async function handlePhotoSelection(file) {
-  if (!file) return;
-
-  if (!file.type.startsWith("image/")) {
-    photoStatus.textContent = "Choisissez une image de repas.";
-    photoAnalysis.hidden = false;
-    return;
-  }
-
-  if (currentPhotoObjectUrl) URL.revokeObjectURL(currentPhotoObjectUrl);
-  currentPhotoObjectUrl = URL.createObjectURL(file);
-  photoPreview.src = currentPhotoObjectUrl;
-  photoAnalysis.hidden = false;
-  photoResult.hidden = true;
-  photoFeedback.hidden = true;
-  photoStatus.hidden = false;
-  photoStatus.textContent = "Analyse de la photo en cours...";
-
-  try {
-    currentPhotoAnalysis = await analyzeMealPhoto(file);
-    renderPhotoAnalysisState(currentPhotoAnalysis);
-  } catch {
-    renderPhotoDifficult();
-  }
-}
-
-// En production GitHub Pages, configurez window.MYCOACHNUTRI_PHOTO_AI_ENDPOINT
-// vers un backend sécurisé qui appelle l'IA sans exposer de clé API dans le navigateur.
-async function analyzeMealPhoto(file) {
-  if (!PHOTO_AI_ENDPOINT) {
-    return {
-      status: "low_confidence",
-      message: "Aucun service d’analyse IA n’est configuré pour confirmer les aliments."
-    };
-  }
-
-  const formData = new FormData();
-  formData.append("image", file);
-  formData.append("mealType", mealForm.elements.mealType.value || "meal");
-  formData.append("portion", mealForm.elements.portion.value || "normal");
-  formData.append("instruction", PHOTO_AI_PROMPT);
-
-  const response = await fetch(PHOTO_AI_ENDPOINT, {
-    method: "POST",
-    body: formData
-  });
-
-  if (!response.ok) throw new Error("Photo analysis failed");
-
-  const result = await response.json();
-  return normalizePhotoAiResult(result);
-}
-
-function normalizePhotoAiResult(result) {
-  const confidence = result.confidenceScore ?? result.confidence ?? result.foodConfidence ?? "medium";
-  const hasFood = result.isFood ?? result.hasFood ?? result.foodDetected ?? result.containsFood ?? result.containsEdibleItem ?? result.hasConsumable;
-  const calories = Math.max(0, Math.round(Number(result.calories || result.estimatedCalories || 0)));
-  const rawDescription = String(result.name || result.message || result.description || result.mealDescription || result.foodName || result.detectedFood || "").trim();
-  const description = rawDescription || "Aliment ou boisson détecté";
-
-  if (hasFood === false || result.status === "no_food") {
-    return { status: "no_food" };
-  }
-
-  if (hasFood !== true || !calories) {
-    return { status: "low_confidence" };
-  }
-
-  return {
-    status: "detected",
-    calories,
-    description,
-    portion: result.portion || mealForm.elements.portion.value || "normal",
-    confidence
-  };
-}
-
-function renderPhotoAnalysisState(analysis) {
-  if (analysis.status === "detected") {
-    renderPhotoDetected(analysis);
-    return;
-  }
-
-  if (analysis.status === "no_food") {
-    renderPhotoInvalid();
-    return;
-  }
-
-  renderPhotoDifficult();
-}
-
-function renderPhotoDetected(analysis) {
-  currentPhotoAnalysis = analysis;
-  photoCalories.textContent = `≈ ${formatCalories(analysis.calories)}`;
-  photoDescription.textContent = analysis.description;
-  photoStatus.textContent = "Analyse terminée.";
-  photoFeedback.hidden = true;
-  photoResult.hidden = false;
-}
-
-function renderPhotoInvalid() {
-  currentPhotoAnalysis = null;
-  photoStatus.textContent = "Photo non conforme.";
-  photoFeedbackTitle.textContent = "❌ Photo non conforme";
-  photoFeedbackMessage.textContent = "Nous ne détectons pas clairement d’aliment ou de boisson sur cette photo. Merci de photographier un aliment, une boisson ou un repas.";
-  photoResult.hidden = true;
-  photoFeedback.hidden = false;
-}
-
-function renderPhotoDifficult() {
-  currentPhotoAnalysis = null;
-  photoStatus.textContent = "Photo difficile à analyser.";
-  photoFeedbackTitle.textContent = "⚠️ Photo difficile à analyser";
-  photoFeedbackMessage.textContent = "Nous avons du mal à identifier les aliments présents. Essayez une photo plus proche et mieux éclairée.";
-  photoResult.hidden = true;
-  photoFeedback.hidden = false;
-}
-
-function validatePhotoMeal() {
-  if (!currentPhotoAnalysis || currentPhotoAnalysis.status !== "detected") return;
-
-  const mealType = mealForm.elements.mealType.value || "breakfast";
-  state.meals.unshift({
-    id: createId(),
-    mealType,
-    description: currentPhotoAnalysis.description,
-    portion: currentPhotoAnalysis.portion || mealForm.elements.portion.value || "normal",
-    calories: currentPhotoAnalysis.calories,
-    source: "photo",
-    createdAt: new Date().toISOString()
-  });
-
-  mealForm.reset();
-  mealForm.elements.mealType.value = mealType;
-  mealForm.elements.portion.value = "normal";
-    mealForm.hidden = true;
-    resetScannedProduct();
-    resetPhotoAnalysis();
-  saveState();
-  render();
-}
-
-function editPhotoMealManually() {
-  if (currentPhotoAnalysis?.description) {
-    mealDescription.value = currentPhotoAnalysis.description;
-  }
-  resetPhotoAnalysis();
-  mealDescription.focus();
-}
-
-function resetPhotoAnalysis() {
-  currentPhotoAnalysis = null;
-  photoInputs.forEach((input) => {
-    input.value = "";
-  });
-  photoAnalysis.hidden = true;
-  photoResult.hidden = true;
-  photoFeedback.hidden = true;
-  photoStatus.textContent = "Analyse en cours...";
-  photoPreview.removeAttribute("src");
-  if (currentPhotoObjectUrl) {
-    URL.revokeObjectURL(currentPhotoObjectUrl);
-    currentPhotoObjectUrl = null;
-  }
-}
-
 function showView(viewId) {
-  if ((viewId === "day" || viewId === "history") && !state.profile) {
-    viewId = "profile";
-  }
-
   views.forEach((view) => {
     view.classList.toggle("is-active", view.id === viewId);
   });
@@ -809,16 +562,9 @@ function calculateProfile(profile) {
   };
 }
 
-async function estimateMealCalories(description, portion, barcode = "") {
-  const barcodeValue = barcode || String(description).match(/\b\d{8,14}\b/)?.[0] || "";
-  if (barcodeValue) {
-    const barcodeEstimate = await searchOpenFoodFacts(barcodeValue, true);
-    if (barcodeEstimate.found) return barcodeEstimate;
-  }
-
+function estimateMealCalories(description, portion) {
   const localEstimate = estimateFromLocalNutrition(description, portion);
-  if (localEstimate.found) return localEstimate;
-  return searchOpenFoodFacts(description, false);
+  return localEstimate.found ? localEstimate : { found: false };
 }
 
 function estimateFromLocalNutrition(description, portion) {
@@ -856,39 +602,6 @@ function estimateFromLocalNutrition(description, portion) {
     found: true,
     calories: total,
     details: `${details}. Estimation approximative.`
-  };
-}
-
-async function searchOpenFoodFacts(description, barcodeOnly = false) {
-  try {
-    const barcode = String(description).match(/\b\d{8,14}\b/)?.[0];
-    if (barcode) {
-      const barcodeProduct = await fetchOpenFoodFactsProduct(barcode);
-      const barcodeEstimate = buildOpenFoodFactsEstimate(barcodeProduct, description);
-      if (barcodeEstimate.found) return barcodeEstimate;
-    }
-
-    if (barcodeOnly) return { found: false };
-
-    const query = encodeURIComponent(description);
-    const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${query}&search_simple=1&action=process&json=1&page_size=1&fields=product_name,brands,nutriments,serving_size,serving_quantity,product_quantity`;
-    const response = await fetch(url);
-    if (!response.ok) return { found: false };
-    const data = await response.json();
-    const product = data.products?.[0] ? normalizeOpenFoodFactsProduct(data.products[0], "") : { found: false };
-    return buildOpenFoodFactsEstimate(product, description);
-  } catch {
-    return { found: false };
-  }
-}
-
-function buildOpenFoodFactsEstimate(product, fallbackName) {
-  if (!product?.found || !product.kcal100 || !product.servingAmount) return { found: false };
-
-  return {
-    found: true,
-    calories: calculateFoodCalories(product.servingAmount, product.kcal100),
-    details: `${product.name || fallbackName} ${Math.round(product.servingAmount)} ${product.unit} (${Math.round(product.kcal100)} kcal/100 ${product.unit}, Open Food Facts). Estimation approximative.`
   };
 }
 
@@ -1005,7 +718,7 @@ function render() {
 
 function renderNavigationState() {
   document.querySelectorAll('[data-view-target="day"], [data-view-target="history"]').forEach((button) => {
-    button.hidden = !state.profile;
+    button.hidden = false;
   });
 }
 

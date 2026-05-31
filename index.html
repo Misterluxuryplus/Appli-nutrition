@@ -13,8 +13,8 @@
       content="MyCoachNutri aide à suivre simplement calories, repas, activité, pas et eau."
     />
     <title>MyCoachNutri</title>
-    <link rel="manifest" href="manifest.json?v=13" />
-    <link rel="stylesheet" href="style.css?v=13" />
+    <link rel="manifest" href="manifest.json?v=14" />
+    <link rel="stylesheet" href="style.css?v=14" />
   </head>
   <body>
     <div class="app-shell">
@@ -241,19 +241,10 @@
                 <textarea name="description" rows="4" placeholder="Ex : riz, poulet, légumes, yaourt" required></textarea>
               </label>
 
-              <label>
-                <span>Calories si vous voulez corriger</span>
-                <input type="number" name="manualCalories" min="0" max="5000" inputmode="numeric" placeholder="Ex : 450 kcal" />
-              </label>
               <p class="helper-text" id="meal-estimate-status">Estimation approximative.</p>
 
-              <label>
-                <span>Code-barres produit</span>
-                <input type="text" name="barcode" inputmode="numeric" autocomplete="off" placeholder="Ex : 3017620422003" />
-              </label>
-              <button class="secondary-action photo-label" type="button" id="barcode-manual-search">Rechercher le produit</button>
-              <label class="secondary-action photo-label" for="barcode-scan-input">📷 Scanner un produit</label>
-              <input class="photo-input" id="barcode-scan-input" type="file" accept="image/*" capture="environment" />
+              <label class="secondary-action scan-label" for="barcode-scan-input">📷 Scanner un produit</label>
+              <input class="scanner-input" id="barcode-scan-input" type="file" accept="image/*" capture="environment" />
               <p class="helper-text" id="barcode-status">Pour les produits industriels, Open Food Facts est utilisé en priorité.</p>
               <div class="barcode-result" id="barcode-result" hidden>
                 <p>✅ Produit détecté</p>
@@ -283,34 +274,6 @@
                 </label>
                 <p class="helper-text" id="barcode-quantity-status">Choisissez une quantité pour calculer les calories.</p>
                 <button class="primary-action" type="button" id="barcode-add-day">Ajouter à ma journée</button>
-              </div>
-
-              <label class="secondary-action photo-label" for="meal-photo-camera">📸 Photographier mon repas</label>
-              <input class="photo-input" id="meal-photo-camera" name="photoCamera" type="file" accept="image/*" capture="environment" />
-              <label class="secondary-action photo-label" for="meal-photo-gallery">🖼️ Choisir une photo</label>
-              <input class="photo-input" id="meal-photo-gallery" name="photoGallery" type="file" accept="image/*" />
-              <div class="photo-analysis" id="photo-analysis" hidden>
-                <img id="photo-preview" alt="Aperçu du repas" />
-                <p class="helper-text" id="photo-status">Analyse en cours...</p>
-                <div class="photo-feedback" id="photo-feedback" hidden>
-                  <strong id="photo-feedback-title">Photo non conforme</strong>
-                  <p id="photo-feedback-message">Nous ne détectons pas clairement d’aliment ou de boisson sur cette photo.</p>
-                  <div class="photo-actions">
-                    <label class="primary-action" for="meal-photo-camera">📸 Reprendre une photo</label>
-                    <label class="secondary-action" for="meal-photo-gallery">🖼️ Choisir une autre photo</label>
-                  </div>
-                </div>
-                <div class="photo-result" id="photo-result" hidden>
-                  <p>✅ Aliment détecté</p>
-                  <span>🍽️ Description</span>
-                  <strong id="photo-description">Description</strong>
-                  <span>🔥 Calories estimées</span>
-                  <strong id="photo-calories">≈ 0 kcal</strong>
-                  <div class="photo-actions">
-                    <button class="primary-action" type="button" id="photo-validate">Valider</button>
-                    <button class="secondary-action" type="button" id="photo-edit">❌ Modifier manuellement</button>
-                  </div>
-                </div>
               </div>
 
               <div class="inline-actions">
@@ -595,6 +558,6 @@
       </nav>
     </div>
 
-    <script src="app.js?v=13" defer></script>
+    <script src="app.js?v=14" defer></script>
   </body>
 </html>

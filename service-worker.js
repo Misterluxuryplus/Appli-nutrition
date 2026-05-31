@@ -1,12 +1,12 @@
 "use strict";
 
-const CACHE_NAME = "mycoachnutri-v13";
+const CACHE_NAME = "mycoachnutri-v14";
 const CORE_ASSETS = [
   "./",
   "./index.html",
-  "./style.css?v=13",
-  "./app.js?v=13",
-  "./manifest.json?v=13"
+  "./style.css?v=14",
+  "./app.js?v=14",
+  "./manifest.json?v=14"
 ];
 
 self.addEventListener("install", (event) => {
