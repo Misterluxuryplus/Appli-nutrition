@@ -68,6 +68,18 @@ const portionLightLabel = document.querySelector("#portion-light-label");
 const portionNormalLabel = document.querySelector("#portion-normal-label");
 const portionHeartyLabel = document.querySelector("#portion-hearty-label");
 const mealSubmitButton = document.querySelector("#meal-submit-button");
+const mealEstimateStatus = document.querySelector("#meal-estimate-status");
+const barcodeScanInput = document.querySelector("#barcode-scan-input");
+const barcodeStatus = document.querySelector("#barcode-status");
+const barcodeManualSearch = document.querySelector("#barcode-manual-search");
+const barcodeResult = document.querySelector("#barcode-result");
+const barcodeProductName = document.querySelector("#barcode-product-name");
+const barcodeProductBrand = document.querySelector("#barcode-product-brand");
+const barcodeProductCalories = document.querySelector("#barcode-product-calories");
+const barcodeProductServing = document.querySelector("#barcode-product-serving");
+const barcodeCustomQuantity = document.querySelector("#barcode-custom-quantity");
+const barcodeQuantityStatus = document.querySelector("#barcode-quantity-status");
+const barcodeAddDay = document.querySelector("#barcode-add-day");
 const photoInputs = document.querySelectorAll(".photo-input");
 const photoStatus = document.querySelector("#photo-status");
 const photoAnalysis = document.querySelector("#photo-analysis");
@@ -98,6 +110,8 @@ let pendingServiceWorker = null;
 let refreshingForUpdate = false;
 let currentPhotoAnalysis = null;
 let currentPhotoObjectUrl = null;
+let currentScannedProduct = null;
+let currentProductQuantity = null;
 
 const mealLabels = {
   breakfast: "Ajouter mon petit-déjeuner",
@@ -115,32 +129,29 @@ const mealPlaceholders = {
   pleasure: "Ex : gâteau, bonbons, soda, glace, chips"
 };
 
-const foodKeywords = [
-  { words: ["pates", "pâtes", "pasta"], calories: 380 },
-  { words: ["riz"], calories: 320 },
-  { words: ["pain", "baguette", "tartine"], calories: 220 },
-  { words: ["viande", "boeuf", "steak"], calories: 330 },
-  { words: ["poulet", "dinde"], calories: 260 },
-  { words: ["oeuf", "oeufs", "œuf", "œufs", "omelette"], calories: 190 },
-  { words: ["fromage blanc", "skyr"], calories: 120 },
-  { words: ["yaourt"], calories: 110 },
-  { words: ["fromage"], calories: 190 },
-  { words: ["legumes", "légumes", "salade", "crudites", "crudités"], calories: 120 },
-  { words: ["croissant", "viennoiserie"], calories: 260 },
-  { words: ["gateau", "gâteau", "biscuit", "dessert"], calories: 320 },
-  { words: ["barre chocolatee", "barre chocolatée", "chocolat"], calories: 300 },
-  { words: ["bonbons", "bonbon"], calories: 260 },
-  { words: ["chips"], calories: 280 },
-  { words: ["soda", "cola"], calories: 150 },
-  { words: ["glace"], calories: 260 },
-  { words: ["fast-food", "fast food", "kebab", "tacos"], calories: 850 },
-  { words: ["pizza"], calories: 760 },
-  { words: ["burger", "hamburger"], calories: 650 },
-  { words: ["frites"], calories: 420 },
-  { words: ["poisson", "saumon", "thon"], calories: 260 },
-  { words: ["soupe"], calories: 150 },
-  { words: ["fruit", "pomme", "banane", "orange"], calories: 95 },
-  { words: ["huile", "sauce", "mayonnaise"], calories: 140 }
+const LOCAL_NUTRITION_DATABASE = [
+  { name: "œuf", aliases: ["oeuf dur", "oeufs durs", "oeufs dur", "oeuf", "oeufs"], kcal100: 155, defaultGrams: 50, unitCalories: 70 },
+  { name: "poire", aliases: ["poire", "poires"], kcal100: 57, defaultGrams: 150 },
+  { name: "pomme", aliases: ["pomme", "pommes"], kcal100: 54, defaultGrams: 150 },
+  { name: "banane", aliases: ["banane", "bananes"], kcal100: 90, defaultGrams: 120 },
+  { name: "riz cuit", aliases: ["riz cuit", "riz"], kcal100: 145, defaultGrams: 150 },
+  { name: "pâtes cuites", aliases: ["pates cuites", "pates", "pasta"], kcal100: 150, defaultGrams: 150 },
+  { name: "pomme de terre cuite", aliases: ["pomme de terre cuite", "pommes de terre", "patate"], kcal100: 85, defaultGrams: 200 },
+  { name: "pain complet", aliases: ["pain complet", "tranche de pain complet", "tartine"], kcal100: 250, defaultGrams: 30 },
+  { name: "poulet cuit", aliases: ["poulet cuit", "poulet"], kcal100: 165, defaultGrams: 120 },
+  { name: "poisson blanc", aliases: ["poisson blanc", "cabillaud", "colin"], kcal100: 90, defaultGrams: 120 },
+  { name: "saumon", aliases: ["saumon"], kcal100: 200, defaultGrams: 120 },
+  { name: "skyr nature", aliases: ["skyr nature", "skyr"], kcal100: 60, defaultGrams: 150 },
+  { name: "fromage blanc 0%", aliases: ["fromage blanc 0", "fromage blanc"], kcal100: 50, defaultGrams: 150 },
+  { name: "yaourt nature", aliases: ["yaourt nature", "yaourt"], kcal100: 65, defaultGrams: 125 },
+  { name: "chocolat", aliases: ["chocolat", "barre chocolatee"], kcal100: 540, defaultGrams: 30 },
+  { name: "bonbons", aliases: ["bonbons", "bonbon"], kcal100: 360, defaultGrams: 40 },
+  { name: "chips", aliases: ["chips"], kcal100: 535, defaultGrams: 40 },
+  { name: "soda", aliases: ["soda", "cola", "canette de soda", "canette"], kcal100: 42, defaultGrams: 330, unit: "ml" },
+  { name: "glace", aliases: ["glace"], kcal100: 210, defaultGrams: 100 },
+  { name: "croissant", aliases: ["croissant", "viennoiserie"], kcal100: 406, defaultGrams: 60 },
+  { name: "pizza", aliases: ["pizza"], kcal100: 260, defaultGrams: 300 },
+  { name: "burger", aliases: ["burger", "hamburger"], kcal100: 295, defaultGrams: 220 }
 ];
 
 const portionFactors = {
@@ -294,20 +305,38 @@ function bindMeals() {
     });
   });
 
-  mealForm.addEventListener("submit", (event) => {
+  mealForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const formData = new FormData(mealForm);
     const description = String(formData.get("description")).trim();
     const mealType = formData.get("mealType") || "breakfast";
     const portion = formData.get("portion");
-    const calories = estimateMealCalories(description, portion, mealType);
+    const manualCalories = Number(formData.get("manualCalories") || 0);
+    const barcode = String(formData.get("barcode") || "").trim();
+    mealEstimateStatus.textContent = "Estimation approximative.";
+    mealSubmitButton.disabled = true;
+    mealSubmitButton.textContent = "Estimation...";
+
+    const estimate = manualCalories
+      ? { found: true, calories: Math.round(manualCalories), details: "Correction manuelle. Estimation approximative." }
+      : await estimateMealCalories(description, portion, barcode);
+
+    mealSubmitButton.disabled = false;
+    configureMealForm(mealType);
+
+    if (!estimate.found) {
+      mealEstimateStatus.textContent =
+        "Aliment non trouvé. Essayez d'ajouter une quantité, un code-barres ou un nom plus précis. Estimation approximative.";
+      return;
+    }
 
     state.meals.unshift({
       id: createId(),
       mealType,
       description,
       portion,
-      calories,
+      calories: estimate.calories,
+      estimateDetails: estimate.details,
       createdAt: new Date().toISOString()
     });
 
@@ -324,6 +353,28 @@ function bindMeals() {
     input.addEventListener("change", () => {
       handlePhotoSelection(input.files?.[0]);
     });
+  });
+
+  barcodeScanInput.addEventListener("change", () => {
+    handleBarcodeScan(barcodeScanInput.files?.[0]);
+  });
+
+  barcodeManualSearch.addEventListener("click", () => {
+    handleBarcodeManualSearch();
+  });
+
+  document.querySelectorAll("[data-product-quantity]").forEach((button) => {
+    button.addEventListener("click", () => {
+      chooseProductQuantity(button.dataset.productQuantity, button.dataset.productUnit);
+    });
+  });
+
+  barcodeCustomQuantity.addEventListener("input", () => {
+    chooseProductQuantity(Number(barcodeCustomQuantity.value || 0), currentScannedProduct?.unit);
+  });
+
+  barcodeAddDay.addEventListener("click", () => {
+    addScannedProductToDay();
   });
 
   photoValidate.addEventListener("click", () => {
@@ -394,6 +445,7 @@ function openMealForm(mealType) {
   mealForm.hidden = false;
   mealForm.elements.mealType.value = mealType;
   configureMealForm(mealType);
+  resetScannedProduct();
   resetPhotoAnalysis();
   mealForm.scrollIntoView({ behavior: "smooth", block: "start" });
   mealDescription.focus();
@@ -409,6 +461,156 @@ function configureMealForm(mealType) {
   portionNormalLabel.textContent = isPleasure ? "Moyen plaisir" : "Normal";
   portionHeartyLabel.textContent = isPleasure ? "Gros plaisir" : "Copieux";
   mealSubmitButton.textContent = isPleasure ? "Estimer le plaisir" : "Estimer le repas";
+  mealEstimateStatus.textContent = "Estimation approximative.";
+}
+
+async function handleBarcodeScan(file) {
+  if (!file) return;
+
+  try {
+    barcodeStatus.textContent = "Lecture du code-barres...";
+    const value = await detectBarcodeFromImage(file);
+    if (!value) {
+      barcodeStatus.textContent = "Code-barres non détecté. Essayez une photo plus nette ou saisissez le code.";
+      return;
+    }
+
+    mealForm.elements.barcode.value = value;
+    await loadScannedProduct(value);
+  } catch {
+    barcodeStatus.textContent = "Caméra ou scanner indisponible. Entrez le code-barres manuellement.";
+  } finally {
+    barcodeScanInput.value = "";
+  }
+}
+
+async function detectBarcodeFromImage(file) {
+  if ("BarcodeDetector" in window) {
+    const image = await createImageBitmap(file);
+    const detector = new BarcodeDetector({
+      formats: ["ean_13", "ean_8", "upc_a", "upc_e", "code_128"]
+    });
+    const codes = await detector.detect(image);
+    if (codes[0]?.rawValue) return codes[0].rawValue;
+  }
+
+  return scanBarcodeWithZxing(file);
+}
+
+async function scanBarcodeWithZxing(file) {
+  try {
+    await ensureZxingBrowser();
+    if (!window.ZXingBrowser?.BrowserMultiFormatReader) return "";
+    const reader = new ZXingBrowser.BrowserMultiFormatReader();
+    const imageUrl = URL.createObjectURL(file);
+    try {
+      const result = await reader.decodeFromImageUrl(imageUrl);
+      return result?.getText?.() || result?.text || "";
+    } finally {
+      URL.revokeObjectURL(imageUrl);
+    }
+  } catch {
+    return "";
+  }
+}
+
+function ensureZxingBrowser() {
+  if (window.ZXingBrowser?.BrowserMultiFormatReader) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = "https://unpkg.com/@zxing/browser@latest/umd/index.min.js";
+    script.async = true;
+    script.onload = resolve;
+    script.onerror = reject;
+    document.head.append(script);
+  });
+}
+
+async function handleBarcodeManualSearch() {
+  const barcode = String(mealForm.elements.barcode.value || "").trim();
+  if (!barcode) {
+    barcodeStatus.textContent = "Entrez le code-barres manuellement.";
+    return;
+  }
+  await loadScannedProduct(barcode);
+}
+
+async function loadScannedProduct(barcode) {
+  barcodeStatus.textContent = "Recherche dans Open Food Facts...";
+  resetScannedProduct();
+  const product = await fetchOpenFoodFactsProduct(barcode);
+  if (!product.found) {
+    barcodeStatus.textContent = "Produit non trouvé dans Open Food Facts. Essayez de saisir le produit manuellement.";
+    return;
+  }
+
+  currentScannedProduct = product;
+  renderScannedProduct(product);
+}
+
+function renderScannedProduct(product) {
+  barcodeProductName.textContent = product.name;
+  barcodeProductBrand.textContent = product.brands || "Marque non renseignée";
+  barcodeProductCalories.textContent = `${Math.round(product.kcal100)} kcal / 100 ${product.unit}`;
+  barcodeProductServing.textContent = product.servingLabel || "Non renseignée";
+  barcodeCustomQuantity.placeholder = `Quantité en ${product.unit}`;
+  barcodeQuantityStatus.textContent = "Choisissez une quantité pour calculer les calories.";
+  barcodeStatus.textContent = "Produit trouvé dans Open Food Facts.";
+  barcodeResult.hidden = false;
+  chooseProductQuantity(product.servingAmount || 0, product.unit);
+}
+
+function chooseProductQuantity(value, unit = currentScannedProduct?.unit) {
+  if (!currentScannedProduct) return;
+  const quantity = value === "serving" ? currentScannedProduct.servingAmount : Number(value || 0);
+  if (!quantity) {
+    currentProductQuantity = null;
+    barcodeQuantityStatus.textContent = "Choisissez une quantité pour calculer les calories.";
+    return;
+  }
+
+  currentProductQuantity = {
+    quantity,
+    unit: currentScannedProduct.unit || unit,
+    calories: calculateFoodCalories(quantity, currentScannedProduct.kcal100)
+  };
+  barcodeQuantityStatus.textContent = `${Math.round(quantity)} ${currentProductQuantity.unit} ≈ ${formatCalories(currentProductQuantity.calories)}. Estimation approximative.`;
+}
+
+function addScannedProductToDay() {
+  if (!currentScannedProduct || !currentProductQuantity) {
+    barcodeQuantityStatus.textContent = "Choisissez une quantité avant d'ajouter le produit.";
+    return;
+  }
+
+  const mealType = mealForm.elements.mealType.value || "snack";
+  state.meals.unshift({
+    id: createId(),
+    mealType,
+    description: `${currentScannedProduct.name}${currentScannedProduct.brands ? ` - ${currentScannedProduct.brands}` : ""}`,
+    portion: "normal",
+    calories: currentProductQuantity.calories,
+    source: "barcode",
+    estimateDetails: `${Math.round(currentProductQuantity.quantity)} ${currentProductQuantity.unit}, ${Math.round(currentScannedProduct.kcal100)} kcal/100 ${currentScannedProduct.unit}, Open Food Facts. Estimation approximative.`,
+    createdAt: new Date().toISOString()
+  });
+
+  mealForm.reset();
+  mealForm.elements.mealType.value = mealType;
+  mealForm.elements.portion.value = "normal";
+  mealForm.hidden = true;
+  resetScannedProduct();
+  resetPhotoAnalysis();
+  saveState();
+  render();
+}
+
+function resetScannedProduct() {
+  currentScannedProduct = null;
+  currentProductQuantity = null;
+  barcodeResult.hidden = true;
+  barcodeCustomQuantity.value = "";
+  barcodeQuantityStatus.textContent = "Choisissez une quantité pour calculer les calories.";
 }
 
 async function handlePhotoSelection(file) {
@@ -546,8 +748,9 @@ function validatePhotoMeal() {
   mealForm.reset();
   mealForm.elements.mealType.value = mealType;
   mealForm.elements.portion.value = "normal";
-  mealForm.hidden = true;
-  resetPhotoAnalysis();
+    mealForm.hidden = true;
+    resetScannedProduct();
+    resetPhotoAnalysis();
   saveState();
   render();
 }
@@ -606,11 +809,182 @@ function calculateProfile(profile) {
   };
 }
 
-function estimateMealCalories(description, portion, mealType = "meal") {
+async function estimateMealCalories(description, portion, barcode = "") {
+  const barcodeValue = barcode || String(description).match(/\b\d{8,14}\b/)?.[0] || "";
+  if (barcodeValue) {
+    const barcodeEstimate = await searchOpenFoodFacts(barcodeValue, true);
+    if (barcodeEstimate.found) return barcodeEstimate;
+  }
+
+  const localEstimate = estimateFromLocalNutrition(description, portion);
+  if (localEstimate.found) return localEstimate;
+  return searchOpenFoodFacts(description, false);
+}
+
+function estimateFromLocalNutrition(description, portion) {
   const normalized = normalizeText(description);
-  const matches = foodKeywords.filter((item) => item.words.some((word) => normalized.includes(normalizeText(word))));
-  const baseCalories = matches.reduce((total, item) => total + item.calories, 0) || (mealType === "pleasure" ? 300 : 430);
-  return Math.round(baseCalories * (portionFactors[portion] || 1));
+  const matches = [];
+  const usedFoods = new Set();
+
+  LOCAL_NUTRITION_DATABASE.forEach((food) => {
+    const alias = findFoodAlias(normalized, food);
+    if (!alias || usedFoods.has(food.name)) return;
+    const explicitGrams = extractExplicitAmount(normalized, alias);
+    const quantity = extractServingQuantity(normalized, alias);
+    const grams = explicitGrams || quantity * food.defaultGrams || food.defaultGrams || 100;
+    const calories = food.unitCalories && !explicitGrams
+      ? Math.round(quantity * food.unitCalories)
+      : calculateFoodCalories(grams, food.kcal100);
+    matches.push({ food, alias, grams, quantity, calories, usesUnitCalories: Boolean(food.unitCalories && !explicitGrams) });
+    usedFoods.add(food.name);
+  });
+
+  if (!matches.length) return { found: false };
+
+  const portionFactor = portionFactors[portion] || 1;
+  const total = Math.round(matches.reduce((sum, item) => sum + item.calories, 0) * portionFactor);
+  const details = matches
+    .map((item) => {
+      if (item.usesUnitCalories) {
+        return `${item.quantity} ${item.food.name}${item.quantity > 1 ? "s" : ""} (${item.food.unitCalories} kcal/pièce)`;
+      }
+      return `${item.food.name} ${Math.round(item.grams)} ${item.food.unit || "g"} (${item.food.kcal100} kcal/100 ${item.food.unit || "g"})`;
+    })
+    .join(", ");
+
+  return {
+    found: true,
+    calories: total,
+    details: `${details}. Estimation approximative.`
+  };
+}
+
+async function searchOpenFoodFacts(description, barcodeOnly = false) {
+  try {
+    const barcode = String(description).match(/\b\d{8,14}\b/)?.[0];
+    if (barcode) {
+      const barcodeProduct = await fetchOpenFoodFactsProduct(barcode);
+      const barcodeEstimate = buildOpenFoodFactsEstimate(barcodeProduct, description);
+      if (barcodeEstimate.found) return barcodeEstimate;
+    }
+
+    if (barcodeOnly) return { found: false };
+
+    const query = encodeURIComponent(description);
+    const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${query}&search_simple=1&action=process&json=1&page_size=1&fields=product_name,brands,nutriments,serving_size,serving_quantity,product_quantity`;
+    const response = await fetch(url);
+    if (!response.ok) return { found: false };
+    const data = await response.json();
+    const product = data.products?.[0] ? normalizeOpenFoodFactsProduct(data.products[0], "") : { found: false };
+    return buildOpenFoodFactsEstimate(product, description);
+  } catch {
+    return { found: false };
+  }
+}
+
+function buildOpenFoodFactsEstimate(product, fallbackName) {
+  if (!product?.found || !product.kcal100 || !product.servingAmount) return { found: false };
+
+  return {
+    found: true,
+    calories: calculateFoodCalories(product.servingAmount, product.kcal100),
+    details: `${product.name || fallbackName} ${Math.round(product.servingAmount)} ${product.unit} (${Math.round(product.kcal100)} kcal/100 ${product.unit}, Open Food Facts). Estimation approximative.`
+  };
+}
+
+async function fetchOpenFoodFactsProduct(barcode) {
+  try {
+    const response = await fetch(
+      `https://world.openfoodfacts.org/api/v2/product/${barcode}.json?fields=product_name,brands,nutriments,serving_size,serving_quantity,product_quantity`
+    );
+    if (!response.ok) return { found: false };
+    const data = await response.json();
+    if (data.status === 0 || !data.product) return { found: false };
+    return normalizeOpenFoodFactsProduct(data.product, barcode);
+  } catch {
+    return { found: false };
+  }
+}
+
+function normalizeOpenFoodFactsProduct(product, barcode) {
+  const kcal100ml = Number(product.nutriments?.["energy-kcal_100ml"] || 0);
+  const kcal100g = Number(product.nutriments?.["energy-kcal_100g"] || 0);
+  const usesMilliliters = Boolean(kcal100ml);
+  const kcal100 = usesMilliliters ? kcal100ml : kcal100g;
+  if (!kcal100) return { found: false };
+
+  const unit = usesMilliliters ? "ml" : "g";
+  const servingFromText = parseAmountWithUnit(product.serving_size);
+  const servingAmount = Number(product.serving_quantity || 0) || servingFromText.amount || Number(product.product_quantity || 0) || 0;
+
+  return {
+    found: true,
+    barcode,
+    name: product.product_name || `Produit ${barcode}`,
+    brands: product.brands || "",
+    kcal100,
+    unit,
+    servingAmount,
+    servingLabel: product.serving_size || (servingAmount ? `${Math.round(servingAmount)} ${unit}` : ""),
+    productQuantity: Number(product.product_quantity || 0)
+  };
+}
+
+function parseAmountWithUnit(value) {
+  const matches = [...String(value || "").toLowerCase().matchAll(/(\d+(?:[,.]\d+)?)\s*(g|gr|gramme|grammes|ml|cl)\b/g)];
+  if (!matches.length) return { amount: 0, unit: "" };
+  const match = matches[matches.length - 1];
+  const amount = Number(match[1].replace(",", "."));
+  const unit = match[2];
+  return {
+    amount: unit === "cl" ? amount * 10 : amount,
+    unit: unit === "cl" ? "ml" : unit
+  };
+}
+
+function findFoodAlias(normalizedDescription, food) {
+  return food.aliases
+    .map((alias) => normalizeText(alias))
+    .sort((a, b) => b.length - a.length)
+    .find((alias) => new RegExp(`\\b${escapeRegex(alias)}\\b`).test(normalizedDescription));
+}
+
+function extractExplicitAmount(text, alias) {
+  const escapedAlias = escapeRegex(alias);
+  const unit = "(g|gr|gramme|grammes|ml|cl)";
+  const before = text.match(new RegExp(`(\\d+(?:[,.]\\d+)?)\\s*${unit}\\s*(?:de|d'|du|des)?\\s*${escapedAlias}`));
+  const after = text.match(new RegExp(`${escapedAlias}\\s*(?:de|d'|du|des)?\\s*(\\d+(?:[,.]\\d+)?)\\s*${unit}`));
+  const globalAmount = text.match(new RegExp(`(\\d+(?:[,.]\\d+)?)\\s*${unit}\\b`));
+  const value = before?.[1] || after?.[1] || globalAmount?.[1];
+  const valueUnit = before?.[2] || after?.[2] || globalAmount?.[2];
+  if (!value) return 0;
+  const amount = Number(value.replace(",", "."));
+  return valueUnit === "cl" ? amount * 10 : amount;
+}
+
+function extractServingQuantity(text, alias) {
+  const escapedAlias = escapeRegex(alias);
+  const numeric = text.match(new RegExp(`\\b(\\d+(?:[,.]\\d+)?)\\s*(?:x\\s*)?(?:de\\s+|d'|du\\s+|des\\s+)?${escapedAlias}\\b`));
+  if (numeric) return Number(numeric[1].replace(",", "."));
+
+  const words = {
+    un: 1,
+    une: 1,
+    deux: 2,
+    trois: 3,
+    quatre: 4,
+    cinq: 5
+  };
+  const word = Object.keys(words).find((key) => new RegExp(`\\b${key}\\s+(?:de\\s+|d'|du\\s+|des\\s+)?${escapedAlias}\\b`).test(text));
+  return word ? words[word] : 1;
+}
+
+function calculateFoodCalories(grams, kcal100) {
+  return Math.round((Number(grams || 0) * Number(kcal100 || 0)) / 100);
+}
+
+function escapeRegex(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function calculateStepsCalories(steps) {
@@ -712,6 +1086,7 @@ function renderMeals() {
       <div>
         <strong>${escapeHtml(meal.description)}</strong>
         <small>${getPortionLabel(meal)} · ${formatCalories(meal.calories)}</small>
+        <small>Estimation approximative.</small>
       </div>
       <button type="button" aria-label="Supprimer ce repas" data-delete-meal="${meal.id}">×</button>
     `;
@@ -1131,6 +1506,8 @@ function formatDate(dateKey) {
 function normalizeText(text) {
   return String(text)
     .toLowerCase()
+    .replace(/œ/g, "oe")
+    .replace(/æ/g, "ae")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
 }

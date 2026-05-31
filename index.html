@@ -13,8 +13,8 @@
       content="MyCoachNutri aide à suivre simplement calories, repas, activité, pas et eau."
     />
     <title>MyCoachNutri</title>
-    <link rel="manifest" href="manifest.json?v=10" />
-    <link rel="stylesheet" href="style.css?v=10" />
+    <link rel="manifest" href="manifest.json?v=13" />
+    <link rel="stylesheet" href="style.css?v=13" />
   </head>
   <body>
     <div class="app-shell">
@@ -240,6 +240,50 @@
                 <span>Ce que vous avez mangé</span>
                 <textarea name="description" rows="4" placeholder="Ex : riz, poulet, légumes, yaourt" required></textarea>
               </label>
+
+              <label>
+                <span>Calories si vous voulez corriger</span>
+                <input type="number" name="manualCalories" min="0" max="5000" inputmode="numeric" placeholder="Ex : 450 kcal" />
+              </label>
+              <p class="helper-text" id="meal-estimate-status">Estimation approximative.</p>
+
+              <label>
+                <span>Code-barres produit</span>
+                <input type="text" name="barcode" inputmode="numeric" autocomplete="off" placeholder="Ex : 3017620422003" />
+              </label>
+              <button class="secondary-action photo-label" type="button" id="barcode-manual-search">Rechercher le produit</button>
+              <label class="secondary-action photo-label" for="barcode-scan-input">📷 Scanner un produit</label>
+              <input class="photo-input" id="barcode-scan-input" type="file" accept="image/*" capture="environment" />
+              <p class="helper-text" id="barcode-status">Pour les produits industriels, Open Food Facts est utilisé en priorité.</p>
+              <div class="barcode-result" id="barcode-result" hidden>
+                <p>✅ Produit détecté</p>
+                <strong id="barcode-product-name">Nom du produit</strong>
+                <span id="barcode-product-brand">Marque</span>
+                <dl class="barcode-facts">
+                  <div>
+                    <dt>Calories</dt>
+                    <dd id="barcode-product-calories">-</dd>
+                  </div>
+                  <div>
+                    <dt>Portion détectée</dt>
+                    <dd id="barcode-product-serving">-</dd>
+                  </div>
+                </dl>
+                <fieldset>
+                  <legend>Quantité consommée</legend>
+                  <div class="quick-choice-grid barcode-choices">
+                    <button type="button" data-product-quantity="330" data-product-unit="ml">1 canette 330 ml</button>
+                    <button type="button" data-product-quantity="500" data-product-unit="ml">1 bouteille 500 ml</button>
+                    <button type="button" data-product-quantity="serving">1 portion</button>
+                  </div>
+                </fieldset>
+                <label>
+                  <span>Quantité personnalisée</span>
+                  <input type="number" id="barcode-custom-quantity" min="0" max="3000" inputmode="decimal" placeholder="Ex : 125" />
+                </label>
+                <p class="helper-text" id="barcode-quantity-status">Choisissez une quantité pour calculer les calories.</p>
+                <button class="primary-action" type="button" id="barcode-add-day">Ajouter à ma journée</button>
+              </div>
 
               <label class="secondary-action photo-label" for="meal-photo-camera">📸 Photographier mon repas</label>
               <input class="photo-input" id="meal-photo-camera" name="photoCamera" type="file" accept="image/*" capture="environment" />
@@ -551,6 +595,6 @@
       </nav>
     </div>
 
-    <script src="app.js?v=10" defer></script>
+    <script src="app.js?v=13" defer></script>
   </body>
 </html>

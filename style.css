@@ -546,7 +546,8 @@ textarea:focus {
 }
 
 .photo-result,
-.photo-feedback {
+.photo-feedback,
+.barcode-result {
   display: grid;
   gap: 10px;
   padding: 12px;
@@ -555,27 +556,60 @@ textarea:focus {
 }
 
 .photo-result p,
-.photo-feedback p {
+.photo-feedback p,
+.barcode-result p {
   margin: 0;
   color: var(--muted);
   line-height: 1.45;
 }
 
 .photo-result span,
-.photo-feedback strong {
+.photo-feedback strong,
+.barcode-result span {
   color: var(--muted);
   line-height: 1.45;
 }
 
-.photo-result strong {
+.photo-result strong,
+.barcode-result strong {
   color: var(--text);
   font-size: 1.8rem;
   line-height: 1;
 }
 
 .photo-result p,
-.photo-feedback strong {
+.photo-feedback strong,
+.barcode-result p {
   color: var(--text);
+  font-weight: 850;
+}
+
+.barcode-facts {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.barcode-facts div {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  background: var(--surface-muted);
+  border-radius: var(--radius);
+}
+
+.barcode-facts dt,
+.barcode-facts dd {
+  margin: 0;
+}
+
+.barcode-facts dt {
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 750;
+}
+
+.barcode-facts dd {
   font-weight: 850;
 }
 
