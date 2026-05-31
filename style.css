@@ -517,7 +517,7 @@ textarea:focus {
   width: 100%;
 }
 
-#meal-photo {
+.photo-input {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -541,7 +541,8 @@ textarea:focus {
   border-radius: var(--radius);
 }
 
-.photo-result {
+.photo-result,
+.photo-feedback {
   display: grid;
   gap: 10px;
   padding: 12px;
@@ -549,21 +550,29 @@ textarea:focus {
   border-radius: var(--radius);
 }
 
-.photo-result p {
+.photo-result p,
+.photo-feedback p {
   margin: 0;
   color: var(--muted);
-  font-weight: 800;
+  line-height: 1.45;
 }
 
 .photo-result span,
-.photo-result small {
+.photo-feedback strong {
   color: var(--muted);
   line-height: 1.45;
 }
 
 .photo-result strong {
-  font-size: 2rem;
+  color: var(--text);
+  font-size: 1.8rem;
   line-height: 1;
+}
+
+.photo-result p,
+.photo-feedback strong {
+  color: var(--text);
+  font-weight: 850;
 }
 
 .photo-actions {

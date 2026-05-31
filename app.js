@@ -27,14 +27,16 @@ const voiceButton = document.querySelector("#voice-button");
 const voiceStatus = document.querySelector("#voice-status");
 const mealDescription = mealForm.elements.description;
 const selectedMealTitle = document.querySelector("#selected-meal-title");
-const photoInput = document.querySelector("#meal-photo");
+const photoInputs = document.querySelectorAll(".photo-input");
 const photoStatus = document.querySelector("#photo-status");
 const photoAnalysis = document.querySelector("#photo-analysis");
 const photoPreview = document.querySelector("#photo-preview");
 const photoResult = document.querySelector("#photo-result");
 const photoCalories = document.querySelector("#photo-calories");
 const photoDescription = document.querySelector("#photo-description");
-const photoConfidence = document.querySelector("#photo-confidence");
+const photoFeedback = document.querySelector("#photo-feedback");
+const photoFeedbackTitle = document.querySelector("#photo-feedback-title");
+const photoFeedbackMessage = document.querySelector("#photo-feedback-message");
 const photoValidate = document.querySelector("#photo-validate");
 const photoEdit = document.querySelector("#photo-edit");
 const stepsInput = document.querySelector("#steps-input");
@@ -103,37 +105,6 @@ const goalAdjustments = {
   cut: -250,
   maintain: 0,
   muscle: 250
-};
-
-// Estimation simple en kcal par kg et par minute.
-const sportRates = {
-  strength: 0.07,
-  walk: 0.05,
-  bike: 0.095,
-  run: 0.13,
-  swim: 0.11,
-  housework: 0.055,
-  gardening: 0.075,
-  pingpong: 0.065,
-  other: 0.07
-};
-
-const sportLabels = {
-  strength: "Musculation",
-  walk: "Marche",
-  bike: "Vélo",
-  run: "Course",
-  swim: "Natation",
-  housework: "Ménage",
-  gardening: "Jardinage",
-  pingpong: "Ping-pong",
-  other: "Autre"
-};
-
-const intensityFactors = {
-  light: 0.8,
-  normal: 1,
-  intense: 1.25
 };
 
 init();
@@ -216,8 +187,10 @@ function bindMeals() {
     render();
   });
 
-  photoInput.addEventListener("change", () => {
-    handlePhotoSelection(photoInput.files?.[0]);
+  photoInputs.forEach((input) => {
+    input.addEventListener("change", () => {
+      handlePhotoSelection(input.files?.[0]);
+    });
   });
 
   photoValidate.addEventListener("click", () => {
@@ -233,26 +206,18 @@ function bindSport() {
   sportForm.addEventListener("submit", (event) => {
     event.preventDefault();
     const formData = new FormData(sportForm);
-    const activityType = formData.get("activityType");
-    const duration = Number(formData.get("duration") || 0);
-    const intensity = formData.get("intensity");
-    const manualCalories = Number(formData.get("manualCalories") || 0);
-    const calories = manualCalories || estimateSportCalories(activityType, duration, intensity);
+    const calories = Math.max(0, Math.round(Number(formData.get("calories") || 0)));
 
-    if (!activityType && !manualCalories) return;
+    if (!calories) return;
 
     state.sports.unshift({
       id: createId(),
-      activityType: activityType || "other",
-      duration,
-      intensity,
-      manualCalories,
+      label: "Sport",
       calories,
       createdAt: new Date().toISOString()
     });
 
     sportForm.reset();
-    sportForm.elements.intensity.value = "normal";
     saveState();
     render();
   });
@@ -315,17 +280,15 @@ async function handlePhotoSelection(file) {
   photoPreview.src = currentPhotoObjectUrl;
   photoAnalysis.hidden = false;
   photoResult.hidden = true;
-  photoConfidence.hidden = true;
+  photoFeedback.hidden = true;
   photoStatus.hidden = false;
   photoStatus.textContent = "Analyse de la photo en cours...";
 
   try {
     currentPhotoAnalysis = await analyzeMealPhoto(file);
-    renderPhotoAnalysis(currentPhotoAnalysis);
+    renderPhotoAnalysisState(currentPhotoAnalysis);
   } catch {
-    currentPhotoAnalysis = buildLocalPhotoEstimate();
-    currentPhotoAnalysis.confidence = "low";
-    renderPhotoAnalysis(currentPhotoAnalysis);
+    renderPhotoDifficult();
   }
 }
 
@@ -333,7 +296,10 @@ async function handlePhotoSelection(file) {
 // vers un backend sécurisé qui appelle l'IA sans exposer de clé API dans le navigateur.
 async function analyzeMealPhoto(file) {
   if (!PHOTO_AI_ENDPOINT) {
-    return buildLocalPhotoEstimate();
+    return {
+      status: "low_confidence",
+      message: "Aucun service d’analyse IA n’est configuré pour confirmer les aliments."
+    };
   }
 
   const formData = new FormData();
@@ -349,43 +315,79 @@ async function analyzeMealPhoto(file) {
   if (!response.ok) throw new Error("Photo analysis failed");
 
   const result = await response.json();
-  return {
-    calories: Math.max(0, Math.round(Number(result.calories || 0))),
-    description: String(result.description || "Repas photographié"),
-    portion: result.portion || mealForm.elements.portion.value || "normal",
-    confidence: result.confidence || "medium"
-  };
+  return normalizePhotoAiResult(result);
 }
 
-function buildLocalPhotoEstimate() {
-  const mealType = mealForm.elements.mealType.value || "lunch";
-  const portion = mealForm.elements.portion.value || "normal";
-  const baseByMeal = {
-    breakfast: 450,
-    lunch: 650,
-    dinner: 600,
-    snack: 250
-  };
-  const calories = Math.round((baseByMeal[mealType] || 550) * (portionFactors[portion] || 1));
+function normalizePhotoAiResult(result) {
+  const confidence = result.confidenceScore ?? result.confidence ?? result.foodConfidence ?? "medium";
+  const hasFood = result.hasFood ?? result.foodDetected ?? result.containsFood;
+  const calories = Math.max(0, Math.round(Number(result.calories || result.estimatedCalories || 0)));
+
+  if (hasFood === false || result.status === "no_food") {
+    return { status: "no_food" };
+  }
+
+  if (hasFood !== true || isLowConfidence(confidence) || !calories) {
+    return { status: "low_confidence" };
+  }
 
   return {
+    status: "detected",
     calories,
-    description: "Repas photographié",
-    portion,
-    confidence: "low"
+    description: String(result.description || result.mealDescription || "Repas détecté"),
+    portion: result.portion || mealForm.elements.portion.value || "normal",
+    confidence
   };
 }
 
-function renderPhotoAnalysis(analysis) {
+function isLowConfidence(confidence) {
+  if (typeof confidence === "number") return confidence < 0.6;
+  return ["low", "faible", "uncertain", "unknown"].includes(String(confidence).toLowerCase());
+}
+
+function renderPhotoAnalysisState(analysis) {
+  if (analysis.status === "detected") {
+    renderPhotoDetected(analysis);
+    return;
+  }
+
+  if (analysis.status === "no_food") {
+    renderPhotoInvalid();
+    return;
+  }
+
+  renderPhotoDifficult();
+}
+
+function renderPhotoDetected(analysis) {
+  currentPhotoAnalysis = analysis;
   photoCalories.textContent = `≈ ${formatCalories(analysis.calories)}`;
   photoDescription.textContent = analysis.description;
-  photoConfidence.hidden = analysis.confidence !== "low";
   photoStatus.textContent = "Analyse terminée.";
+  photoFeedback.hidden = true;
   photoResult.hidden = false;
 }
 
+function renderPhotoInvalid() {
+  currentPhotoAnalysis = null;
+  photoStatus.textContent = "Photo non conforme.";
+  photoFeedbackTitle.textContent = "❌ Photo non conforme";
+  photoFeedbackMessage.textContent = "Nous ne détectons pas clairement d'aliment sur cette photo. Merci de photographier un repas, un aliment ou une boisson afin d'obtenir une estimation des calories.";
+  photoResult.hidden = true;
+  photoFeedback.hidden = false;
+}
+
+function renderPhotoDifficult() {
+  currentPhotoAnalysis = null;
+  photoStatus.textContent = "Photo difficile à analyser.";
+  photoFeedbackTitle.textContent = "⚠️ Photo difficile à analyser";
+  photoFeedbackMessage.textContent = "Nous avons du mal à identifier les aliments présents. Essayez une photo plus proche et mieux éclairée.";
+  photoResult.hidden = true;
+  photoFeedback.hidden = false;
+}
+
 function validatePhotoMeal() {
-  if (!currentPhotoAnalysis) return;
+  if (!currentPhotoAnalysis || currentPhotoAnalysis.status !== "detected") return;
 
   const mealType = mealForm.elements.mealType.value || "breakfast";
   state.meals.unshift({
@@ -417,10 +419,12 @@ function editPhotoMealManually() {
 
 function resetPhotoAnalysis() {
   currentPhotoAnalysis = null;
-  photoInput.value = "";
+  photoInputs.forEach((input) => {
+    input.value = "";
+  });
   photoAnalysis.hidden = true;
   photoResult.hidden = true;
-  photoConfidence.hidden = true;
+  photoFeedback.hidden = true;
   photoStatus.textContent = "Analyse en cours...";
   photoPreview.removeAttribute("src");
   if (currentPhotoObjectUrl) {
@@ -464,12 +468,6 @@ function estimateMealCalories(description, portion) {
   const matches = foodKeywords.filter((item) => item.words.some((word) => normalized.includes(normalizeText(word))));
   const baseCalories = matches.reduce((total, item) => total + item.calories, 0) || 430;
   return Math.round(baseCalories * (portionFactors[portion] || 1));
-}
-
-function estimateSportCalories(activityType, duration, intensity) {
-  const weight = state.profile?.weight || 70;
-  const rate = sportRates[activityType] || sportRates.other;
-  return Math.round(weight * duration * rate * (intensityFactors[intensity] || 1));
 }
 
 function calculateStepsCalories(steps) {
@@ -518,31 +516,42 @@ function renderExampleDay(target) {
     snack: Math.round(target * 0.1)
   };
   const scale = target / 2000;
-  const bread = range(30, 60, scale);
+  const breakfastBread = range(40, 60, scale);
+  const oats = scaleNumber(60, scale);
+  const breakfastEggBread = scaleNumber(40, scale);
+  const breadSlices = scaleNumber(60, scale);
   const protein = range(120, 180, scale);
-  const lunchStarch = range(80, 160, scale);
-  const dinnerStarch = range(60, 140, scale);
+  const lunchRice = range(100, 150, scale);
+  const lunchPotatoes = range(150, 250, scale);
+  const lunchSemolina = range(80, 120, scale);
+  const lunchBread = range(60, 100, scale);
+  const dinnerStarch = range(60, 120, scale);
+  const dinnerBread = range(40, 80, scale);
+  const dairySnack = range(150, 200, scale);
+  const almonds = range(15, 20, scale);
 
   document.querySelector("#example-breakfast").textContent = formatCalories(split.breakfast);
   document.querySelector("#example-lunch").textContent = formatCalories(split.lunch);
   document.querySelector("#example-dinner").textContent = formatCalories(split.dinner);
   document.querySelector("#example-snack").textContent = formatCalories(split.snack);
-  document.querySelector("#advice-breakfast").innerHTML = buildAdviceHtml(
-    ["🥣 Skyr ou fromage blanc", "🍌 Fruit", `🍞 ${bread} g de pain complet ou flocons d’avoine`],
-    ["🥚 Œufs", "🥛 Yaourt nature", "🍎 Autre fruit"]
-  );
-  document.querySelector("#advice-lunch").innerHTML = buildAdviceHtml(
-    [`🍗 ${protein} g de poulet, dinde, poisson, œufs ou viande halal possible`, "🥦 Légumes", `🍚 ${lunchStarch} g de riz, pâtes, pommes de terre ou semoule`],
-    ["🫘 Lentilles, pois chiches ou haricots rouges", "🐟 Thon ou saumon", "🥗 Grande salade complète"]
-  );
-  document.querySelector("#advice-dinner").innerHTML = buildAdviceHtml(
-    [`🐟 ${protein} g de poisson, œufs, poulet, tofu ou légumineuses`, "🥦 Légumes", `🥔 ${dinnerStarch} g de féculents selon la faim`],
-    ["🍳 Omelette", "🫘 Lentilles ou pois chiches", "🥣 Soupe + produit laitier"]
-  );
-  document.querySelector("#advice-snack").innerHTML = buildAdviceHtml(
-    ["🍎 Fruit", "🥣 Skyr, fromage blanc ou yaourt nature"],
-    ["🥜 Quelques amandes", "🍌 Banane", "🥛 Lait ou boisson sans sucre"]
-  );
+  document.querySelector("#advice-breakfast").innerHTML = buildAdviceSections([
+    ["✅ Choix 1", [`200 g de skyr ou fromage blanc`, "1 fruit", `${breakfastBread} g de pain complet`]],
+    ["🔁 Remplacements possibles", [`${oats} g de flocons d'avoine`, `2 œufs + ${breakfastEggBread} g de pain complet`, `2 tranches de pain complet (${breadSlices} g)`]]
+  ]);
+  document.querySelector("#advice-lunch").innerHTML = buildAdviceSections([
+    ["✅ Protéines", [`${protein} g de poulet`, "ou poisson", "ou dinde", "ou œufs"]],
+    ["✅ Féculents", [`${lunchRice} g de riz cuit`, `ou ${lunchRice} g de pâtes cuites`, `ou ${lunchPotatoes} g de pommes de terre`, `ou ${lunchSemolina} g de semoule cuite`]],
+    ["🔁 Remplacement pain complet", [`Si vous ne prenez pas de féculents : ${lunchBread} g de pain complet`]],
+    ["✅ Légumes", ["Légumes à volonté"]]
+  ]);
+  document.querySelector("#advice-dinner").innerHTML = buildAdviceSections([
+    ["✅ Protéines", [`${protein} g : poisson`, "poulet", "œufs", "légumineuses"]],
+    ["✅ Féculents", [`${dinnerStarch} g : riz`, "pâtes", "pommes de terre", "semoule"]],
+    ["🔁 Remplacement", [`${dinnerBread} g de pain complet`]]
+  ]);
+  document.querySelector("#advice-snack").innerHTML = buildAdviceSections([
+    ["🥣 Collation", [`${dairySnack} g de skyr`, `ou ${dairySnack} g de fromage blanc`, "ou 1 yaourt nature", "+ 1 fruit", `ou ${almonds} g d'amandes`]]
+  ]);
 }
 
 function renderMeals() {
@@ -579,12 +588,10 @@ function renderSports() {
 
   state.sports.forEach((sport) => {
     const item = document.createElement("li");
-    const label = sportLabels[sport.activityType] || "Activité";
-    const detail = sport.manualCalories ? "Saisie manuelle" : `${sport.duration || 0} min`;
     item.innerHTML = `
       <div>
-        <strong>${label}</strong>
-        <small>${detail} · ${formatCalories(sport.calories)}</small>
+        <strong>Sport</strong>
+        <small>${formatCalories(sport.calories)}</small>
       </div>
       <button type="button" aria-label="Supprimer cette activité" data-delete-sport="${sport.id}">×</button>
     `;
@@ -794,17 +801,21 @@ function range(min, max, scale) {
   return `${low} à ${high}`;
 }
 
-function buildAdviceHtml(takeItems, replaceItems) {
-  return `
-    <div>
-      <strong>✅ Tu peux prendre :</strong>
-      <ul>${takeItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
-    </div>
-    <div>
-      <strong>🔁 Tu peux remplacer par :</strong>
-      <ul>${replaceItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
-    </div>
-  `;
+function buildAdviceSections(sections) {
+  return sections
+    .map(([title, items]) => {
+      return `
+        <div>
+          <strong>${escapeHtml(title)}</strong>
+          <ul>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+        </div>
+      `;
+    })
+    .join("");
+}
+
+function scaleNumber(value, scale) {
+  return Math.round((value * scale) / 5) * 5;
 }
 
 function escapeHtml(value) {

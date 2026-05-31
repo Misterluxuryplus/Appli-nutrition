@@ -13,8 +13,8 @@
       content="MyCoachNutri aide à suivre simplement calories, repas, activité, pas et eau."
     />
     <title>MyCoachNutri</title>
-    <link rel="manifest" href="manifest.json?v=4" />
-    <link rel="stylesheet" href="style.css?v=4" />
+    <link rel="manifest" href="manifest.json?v=6" />
+    <link rel="stylesheet" href="style.css?v=6" />
   </head>
   <body>
     <div class="app-shell">
@@ -235,18 +235,29 @@
                 <textarea name="description" rows="4" placeholder="Ex : riz, poulet, légumes, yaourt" required></textarea>
               </label>
 
-              <label class="secondary-action photo-label" for="meal-photo">📸 Photographier mon repas</label>
-              <input id="meal-photo" name="photo" type="file" accept="image/*" capture="environment" />
+              <label class="secondary-action photo-label" for="meal-photo-camera">📸 Photographier mon repas</label>
+              <input class="photo-input" id="meal-photo-camera" name="photoCamera" type="file" accept="image/*" capture="environment" />
+              <label class="secondary-action photo-label" for="meal-photo-gallery">🖼️ Choisir une photo</label>
+              <input class="photo-input" id="meal-photo-gallery" name="photoGallery" type="file" accept="image/*" />
               <div class="photo-analysis" id="photo-analysis" hidden>
                 <img id="photo-preview" alt="Aperçu du repas" />
                 <p class="helper-text" id="photo-status">Analyse en cours...</p>
-                <div class="photo-result" id="photo-result" hidden>
-                  <p>🍽️ Repas estimé :</p>
-                  <strong id="photo-calories">≈ 0 kcal</strong>
-                  <span id="photo-description">Description du repas</span>
-                  <small id="photo-confidence" hidden>Estimation approximative. Vérifiez si nécessaire.</small>
+                <div class="photo-feedback" id="photo-feedback" hidden>
+                  <strong id="photo-feedback-title">Photo non conforme</strong>
+                  <p id="photo-feedback-message">Nous ne détectons pas clairement d'aliment sur cette photo.</p>
                   <div class="photo-actions">
-                    <button class="primary-action" type="button" id="photo-validate">✅ Valider</button>
+                    <label class="primary-action" for="meal-photo-camera">📸 Reprendre une photo</label>
+                    <label class="secondary-action" for="meal-photo-gallery">🖼️ Choisir une autre photo</label>
+                  </div>
+                </div>
+                <div class="photo-result" id="photo-result" hidden>
+                  <p>✅ Aliments détectés</p>
+                  <span>🍽️ Description du repas</span>
+                  <strong id="photo-description">Description du repas</strong>
+                  <span>🔥 Calories estimées</span>
+                  <strong id="photo-calories">≈ 0 kcal</strong>
+                  <div class="photo-actions">
+                    <button class="primary-action" type="button" id="photo-validate">Valider</button>
                     <button class="secondary-action" type="button" id="photo-edit">❌ Modifier manuellement</button>
                   </div>
                 </div>
@@ -280,61 +291,20 @@
           </section>
 
           <section class="day-block" aria-labelledby="sport-title">
-            <h3 id="sport-title">Calories dépensées</h3>
+            <h3 id="sport-title">🏃 Sport</h3>
             <form class="stack" id="sport-form">
               <label>
-                <span>Activité</span>
-                <select name="activityType" required>
-                  <option value="">Choisir</option>
-                  <option value="strength">Musculation</option>
-                  <option value="walk">Marche</option>
-                  <option value="bike">Vélo</option>
-                  <option value="run">Course</option>
-                  <option value="swim">Natation</option>
-                  <option value="housework">Ménage</option>
-                  <option value="gardening">Jardinage</option>
-                  <option value="pingpong">Ping-pong</option>
-                  <option value="other">Autre</option>
-                </select>
+                <span>Calories brûlées</span>
+                <input type="number" name="calories" min="0" max="3000" inputmode="numeric" placeholder="350 kcal" required />
               </label>
-
-              <div class="field-grid">
-                <label>
-                  <span>Durée en minutes</span>
-                  <input type="number" name="duration" min="1" max="300" inputmode="numeric" placeholder="45" />
-                </label>
-                <label>
-                  <span>Calories brûlées connues</span>
-                  <input type="number" name="manualCalories" min="0" max="3000" inputmode="numeric" placeholder="Optionnel" />
-                </label>
-              </div>
-
-              <fieldset>
-                <legend>Intensité</legend>
-                <div class="segmented-control">
-                  <label>
-                    <input type="radio" name="intensity" value="light" required />
-                    <span>Légère</span>
-                  </label>
-                  <label>
-                    <input type="radio" name="intensity" value="normal" checked required />
-                    <span>Normale</span>
-                  </label>
-                  <label>
-                    <input type="radio" name="intensity" value="intense" required />
-                    <span>Intense</span>
-                  </label>
-                </div>
-              </fieldset>
-
-              <button class="primary-action" type="submit">Ajouter l’activité</button>
+              <button class="primary-action" type="submit">Ajouter le sport</button>
             </form>
             <ul class="entry-list" id="sport-list" aria-label="Sports ajoutés"></ul>
           </section>
 
           <section class="day-block steps-panel" aria-labelledby="steps-title">
             <div class="steps-heading">
-              <h3 id="steps-title">🚶 Marche / pas du jour</h3>
+            <h3 id="steps-title">🚶 Pas du jour</h3>
               <p id="steps-message">Même sans salle, marcher aide beaucoup.</p>
             </div>
             <label>
@@ -370,12 +340,12 @@
               </article>
               <article class="summary-card-sport">
                 <span class="summary-icon" aria-hidden="true">🏃</span>
-                <span>Sport</span>
+                <span>Calories sport</span>
                 <strong id="summary-sport">0 kcal</strong>
               </article>
               <article class="summary-card-steps">
                 <span class="summary-icon" aria-hidden="true">🚶</span>
-                <span>Pas / marche</span>
+                <span>Calories marche</span>
                 <strong id="summary-steps">0 kcal</strong>
               </article>
               <article class="summary-card-water">
@@ -433,6 +403,6 @@
       </nav>
     </div>
 
-    <script src="app.js?v=4" defer></script>
+    <script src="app.js?v=6" defer></script>
   </body>
 </html>
