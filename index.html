@@ -13,8 +13,8 @@
       content="MyCoachNutri aide à suivre simplement calories, repas, activité, pas et eau."
     />
     <title>MyCoachNutri</title>
-    <link rel="manifest" href="manifest.json?v=10" />
-    <link rel="stylesheet" href="style.css?v=10" />
+    <link rel="manifest" href="manifest.json?v=11" />
+    <link rel="stylesheet" href="style.css?v=11" />
   </head>
   <body>
     <div class="app-shell">
@@ -54,8 +54,8 @@
                 <span>Pour garder votre poids stable</span>
               </article>
               <article>
-                <strong>🎯 Objectif</strong>
-                <span>Pour perdre progressivement</span>
+                <strong>📉 Perte progressive</strong>
+                <span>Pour avancer simplement</span>
               </article>
             </div>
             <div class="home-encouragement">
@@ -112,7 +112,7 @@
             </div>
 
             <label>
-              <span>Objectif</span>
+              <span>Envie principale</span>
               <select name="goal" required>
                 <option value="">Choisir</option>
                 <option value="lose">Perdre du poids</option>
@@ -140,7 +140,7 @@
               </div>
             </fieldset>
 
-            <button class="primary-action" type="submit">Calculer mon objectif</button>
+            <button class="primary-action" type="submit">Calculer mon profil</button>
           </form>
 
           <div class="result-panel goal-result profile-result-stack" id="profile-results" hidden>
@@ -157,42 +157,12 @@
             </section>
 
             <section class="profile-metric-card">
-              <p class="profile-metric-title">🎯 Objectif</p>
+              <p class="profile-metric-title">📉 Pour perdre du poids progressivement</p>
+              <p>Essayez de rester autour de :</p>
               <strong id="target-result">-</strong>
-              <p id="target-sentence">-</p>
+              <p id="target-sentence">Cette valeur reste une estimation simple.</p>
             </section>
 
-            <section class="profile-metric-card profile-tip-card">
-              <p class="profile-metric-title">📉 Comment perdre du poids ?</p>
-              <p>Mangez légèrement moins que ce que votre corps dépense et restez actif.</p>
-              <p>La régularité est plus importante que la perfection.</p>
-            </section>
-
-            <section class="example-day" aria-labelledby="example-day-title">
-              <h3 id="example-day-title">Exemple de journée adaptée</h3>
-              <div class="example-grid">
-                <article>
-                  <span>Petit-déjeuner</span>
-                  <strong id="example-breakfast">-</strong>
-                  <div class="food-advice" id="advice-breakfast">-</div>
-                </article>
-                <article>
-                  <span>Déjeuner</span>
-                  <strong id="example-lunch">-</strong>
-                  <div class="food-advice" id="advice-lunch">-</div>
-                </article>
-                <article>
-                  <span>Dîner</span>
-                  <strong id="example-dinner">-</strong>
-                  <div class="food-advice" id="advice-dinner">-</div>
-                </article>
-                <article>
-                  <span>Collation</span>
-                  <strong id="example-snack">-</strong>
-                  <div class="food-advice" id="advice-snack">-</div>
-                </article>
-              </div>
-            </section>
           </div>
         </section>
 
@@ -348,50 +318,32 @@
           </section>
 
           <section class="day-block" aria-labelledby="day-summary-title">
-            <h3 id="day-summary-title">📊 Bilan de votre journée</h3>
+            <h3 id="day-summary-title">📊 Ma journée</h3>
             <div class="daily-balance-card">
               <div class="daily-balance-main">
                 <article>
-                  <span>🍽️ Vous avez mangé</span>
+                  <span>🍽️ Calories consommées</span>
                   <strong id="summary-food">0 kcal</strong>
-                </article>
-                <article>
-                  <span>🎯 Votre objectif du jour</span>
-                  <strong id="summary-target">-</strong>
                 </article>
                 <article>
                   <span>🏃 Sport</span>
                   <strong id="summary-sport">0 kcal</strong>
                 </article>
                 <article>
-                  <span>🚶 Marche / pas</span>
+                  <span>🚶 Pas / marche</span>
                   <strong id="summary-steps">0 kcal</strong>
                 </article>
+                <article>
+                  <span>⚖️ Maintien</span>
+                  <strong id="summary-maintenance">-</strong>
+                </article>
                 <article class="balance-delta-card">
-                  <span id="summary-delta-label">📉 Déficit</span>
+                  <span id="summary-delta-label">📉 Déficit du jour</span>
                   <strong id="summary-delta">-</strong>
                 </article>
               </div>
 
               <p class="kind-message" id="kind-message">Remplissez votre profil pour obtenir une estimation adaptée.</p>
-
-              <div class="daily-balance-details" aria-label="Détails du bilan">
-                <article>
-                  <span>💧 Eau</span>
-                  <strong id="summary-water">0 L</strong>
-                </article>
-              </div>
-            </div>
-            <p class="summary-pleasure-line" id="summary-pleasure">🍫 Plaisirs notés : 0 kcal</p>
-
-            <div class="progress-panel" aria-label="Progression des calories mangées vers l'objectif du jour">
-              <div class="progress-meta">
-                <span>0 kcal</span>
-                <span id="progress-target-label">Objectif du jour</span>
-              </div>
-              <div class="progress-track">
-                <div class="progress-fill" id="calorie-progress"></div>
-              </div>
             </div>
           </section>
         </section>
@@ -566,6 +518,6 @@
       </nav>
     </div>
 
-    <script src="app.js?v=10" defer></script>
+    <script src="app.js?v=11" defer></script>
   </body>
 </html>

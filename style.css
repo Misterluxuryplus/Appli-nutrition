@@ -780,79 +780,6 @@ textarea:focus {
   line-height: 1.5;
 }
 
-.profile-tip-card {
-  background: var(--surface-muted);
-  padding: 14px;
-  border: 0;
-  border-radius: var(--radius);
-}
-
-.example-day {
-  display: grid;
-  gap: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border);
-}
-
-.example-day h3 {
-  margin: 0;
-  font-size: 1.2rem;
-}
-
-.example-grid {
-  display: grid;
-  gap: 10px;
-}
-
-.example-grid article {
-  display: grid;
-  gap: 6px;
-  padding: 14px;
-  background: var(--surface-muted);
-  border-radius: var(--radius);
-}
-
-.example-grid span {
-  color: var(--muted);
-  font-size: 0.88rem;
-  font-weight: 800;
-}
-
-.example-grid strong {
-  font-size: 1.25rem;
-}
-
-.example-grid p,
-.food-advice {
-  margin: 0;
-  color: var(--muted);
-  line-height: 1.45;
-}
-
-.food-advice {
-  display: grid;
-  gap: 12px;
-}
-
-.food-advice strong {
-  display: block;
-  margin-bottom: 6px;
-  color: var(--text);
-  font-size: 0.95rem;
-}
-
-.food-advice ul {
-  display: grid;
-  gap: 5px;
-  padding: 0;
-  margin: 0;
-  list-style: none;
-}
-
-.food-advice li {
-  color: var(--muted);
-}
-
 .details-panel {
   padding-top: 10px;
   border-top: 1px solid var(--border);
@@ -998,17 +925,6 @@ textarea:focus {
 
 .summary-card-balance {
   background: #f5f0ff !important;
-}
-
-.summary-pleasure-line {
-  margin: -4px 0 0;
-  padding: 12px 14px;
-  color: #6f4f2b;
-  font-weight: 850;
-  line-height: 1.35;
-  background: #fff6ec;
-  border: 1px solid #f1d6b8;
-  border-radius: var(--radius);
 }
 
 .water-panel {
@@ -1276,9 +1192,6 @@ textarea:focus {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .example-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
 }
 
 @media (min-width: 760px) {

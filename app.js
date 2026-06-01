@@ -754,57 +754,10 @@ function renderProfileResults() {
   panel.hidden = false;
   document.querySelector("#bmr-result").textContent = formatCalories(bmr);
   document.querySelector("#maintenance-result").textContent = formatCalories(maintenance);
-  document.querySelector("#target-result").textContent = formatCalories(target);
+  document.querySelector("#target-result").textContent = `${formatCalories(target)} par jour`;
   document.querySelector("#bmr-sentence").textContent = `Votre corps brûle environ ${formatCalories(bmr)} par jour, même au repos.`;
   document.querySelector("#maintenance-sentence").textContent = `En mangeant environ ${formatCalories(maintenance)} par jour, votre poids devrait rester stable.`;
-  document.querySelector("#target-sentence").textContent = `Pour perdre du poids progressivement, essayez de rester autour de ${formatCalories(target)} par jour.`;
-  renderExampleDay(target);
-}
-
-function renderExampleDay(target) {
-  const split = {
-    breakfast: Math.round(target * 0.25),
-    lunch: Math.round(target * 0.35),
-    dinner: Math.round(target * 0.3),
-    snack: Math.round(target * 0.1)
-  };
-  const scale = target / 2000;
-  const breakfastBread = range(40, 60, scale);
-  const oats = scaleNumber(60, scale);
-  const breakfastEggBread = scaleNumber(40, scale);
-  const breadSlices = scaleNumber(60, scale);
-  const protein = range(120, 180, scale);
-  const lunchRice = range(100, 150, scale);
-  const lunchPotatoes = range(150, 250, scale);
-  const lunchSemolina = range(80, 120, scale);
-  const lunchBread = range(60, 100, scale);
-  const dinnerStarch = range(60, 120, scale);
-  const dinnerBread = range(40, 80, scale);
-  const dairySnack = range(150, 200, scale);
-  const almonds = range(15, 20, scale);
-
-  document.querySelector("#example-breakfast").textContent = formatCalories(split.breakfast);
-  document.querySelector("#example-lunch").textContent = formatCalories(split.lunch);
-  document.querySelector("#example-dinner").textContent = formatCalories(split.dinner);
-  document.querySelector("#example-snack").textContent = formatCalories(split.snack);
-  document.querySelector("#advice-breakfast").innerHTML = buildAdviceSections([
-    ["✅ Choix 1", [`200 g de skyr ou fromage blanc`, "1 fruit", `${breakfastBread} g de pain complet`]],
-    ["🔁 Remplacements possibles", [`${oats} g de flocons d'avoine`, `2 œufs + ${breakfastEggBread} g de pain complet`, `2 tranches de pain complet (${breadSlices} g)`]]
-  ]);
-  document.querySelector("#advice-lunch").innerHTML = buildAdviceSections([
-    ["✅ Protéines", [`${protein} g de poulet`, "ou poisson", "ou dinde", "ou œufs"]],
-    ["✅ Féculents", [`${lunchRice} g de riz cuit`, `ou ${lunchRice} g de pâtes cuites`, `ou ${lunchPotatoes} g de pommes de terre`, `ou ${lunchSemolina} g de semoule cuite`]],
-    ["🔁 Remplacement pain complet", [`Si vous ne prenez pas de féculents : ${lunchBread} g de pain complet`]],
-    ["✅ Légumes", ["Légumes à volonté"]]
-  ]);
-  document.querySelector("#advice-dinner").innerHTML = buildAdviceSections([
-    ["✅ Protéines", [`${protein} g : poisson`, "poulet", "œufs", "légumineuses"]],
-    ["✅ Féculents", [`${dinnerStarch} g : riz`, "pâtes", "pommes de terre", "semoule"]],
-    ["🔁 Remplacement", [`${dinnerBread} g de pain complet`]]
-  ]);
-  document.querySelector("#advice-snack").innerHTML = buildAdviceSections([
-    ["🥣 Collation", [`${dairySnack} g de skyr`, `ou ${dairySnack} g de fromage blanc`, "ou 1 yaourt nature", "+ 1 fruit", `ou ${almonds} g d'amandes`]]
-  ]);
+  document.querySelector("#target-sentence").textContent = "Cette valeur reste une estimation simple.";
 }
 
 function renderMeals() {
@@ -871,7 +824,6 @@ function renderSteps() {
 
 function renderWater() {
   const liters = Number(state.waterLiters || 0);
-  document.querySelector("#summary-water").textContent = formatLiters(liters);
   waterMessage.textContent = liters >= 2 ? "Bonne hydratation 👍" : "Boire aide aussi la satiété et l’énergie.";
   document.querySelectorAll("[data-water]").forEach((button) => {
     button.classList.toggle("is-active", Number(button.dataset.water) === liters);
@@ -880,28 +832,20 @@ function renderWater() {
 
 function renderSummary() {
   const calculations = state.profile?.calculations || {};
-  const target = calculations.target || 0;
+  const maintenance = calculations.maintenance || 0;
   const eaten = sumCalories(state.meals);
-  const pleasure = sumCalories(state.meals.filter((meal) => meal.mealType === "pleasure"));
   const sport = sumCalories(state.sports);
   const stepsCalories = Number(state.steps?.calories || 0);
   const totalNet = eaten - sport - stepsCalories;
-  const delta = Math.abs(target - totalNet);
-  const balanceStatus = getDailyBalanceStatus(target, totalNet, delta);
-  const progress = target ? Math.min((Math.max(totalNet, 0) / target) * 100, 100) : 0;
+  const delta = Math.abs(maintenance - totalNet);
+  const balanceStatus = getDailyBalanceStatus(maintenance, totalNet, delta);
 
   document.querySelector("#summary-food").textContent = formatCalories(eaten);
-  document.querySelector("#summary-target").textContent = target ? formatCalories(target) : "-";
+  document.querySelector("#summary-maintenance").textContent = maintenance ? formatCalories(maintenance) : "-";
   document.querySelector("#summary-delta-label").textContent = balanceStatus.label;
-  document.querySelector("#summary-delta").textContent = target ? balanceStatus.value : "-";
+  document.querySelector("#summary-delta").textContent = maintenance ? balanceStatus.value : "-";
   document.querySelector("#summary-sport").textContent = formatCalories(sport);
   document.querySelector("#summary-steps").textContent = formatCalories(stepsCalories);
-  document.querySelector("#summary-pleasure").textContent = `🍫 Plaisirs notés : ${formatCalories(pleasure)}`;
-  document.querySelector("#progress-target-label").textContent = target ? formatCalories(target) : "Objectif du jour";
-
-  const progressFill = document.querySelector("#calorie-progress");
-  progressFill.style.width = `${progress}%`;
-  progressFill.classList.toggle("is-over", target > 0 && totalNet > target);
   document.querySelector("#kind-message").textContent = balanceStatus.message;
 }
 
@@ -953,12 +897,13 @@ function renderHistoryDetail(entry) {
 
 function getDayStatus(entry) {
   const hasData = Number(entry.eaten || 0) || Number(entry.sport || 0) || Number(entry.steps || 0) || Number(entry.waterLiters || 0);
-  if (!hasData) return { level: "none", label: "⚪ Aucune donnée" };
-  if (!entry.target) return { level: "none", label: "⚪ Aucune donnée" };
-  const remaining = Number(entry.target) - Number(entry.eaten || 0) + Number(entry.sport || 0) + Number(entry.stepsCalories || 0);
-  if (remaining >= 0) return { level: "ok", label: "🟢 Dans l'objectif" };
-  if (remaining >= -300) return { level: "near", label: "🟠 Proche de l'objectif" };
-  return { level: "over", label: "🔴 Au-dessus de l'objectif" };
+  const maintenance = Number(entry.maintenance || entry.target || 0);
+  if (!hasData || !maintenance) return { level: "none", label: "⚪ Aucune donnée" };
+  const net = Number(entry.eaten || 0) - Number(entry.sport || 0) - Number(entry.stepsCalories || 0);
+  const delta = net - maintenance;
+  if (Math.abs(delta) <= 100) return { level: "near", label: "🟠 Proche du maintien" };
+  if (delta < 0) return { level: "ok", label: "🟢 Déficit du jour" };
+  return { level: "over", label: "🔴 Au-dessus du maintien" };
 }
 
 function renderWeight() {
@@ -1007,15 +952,8 @@ function buildWeightMessage(change) {
   return "👍 Continuez, la régularité est la clé.";
 }
 
-function buildKindMessage(target, remaining) {
-  if (!target) return "Remplissez votre profil pour obtenir une estimation adaptée.";
-  if (remaining >= 0) return "Vous êtes dans votre objectif aujourd’hui 👍";
-  if (remaining >= -300) return "Vous dépassez légèrement aujourd’hui, ce n’est pas grave.";
-  return "Journée plus haute que prévu. Reprenez simplement votre équilibre au prochain repas.";
-}
-
-function getDailyBalanceStatus(target, totalNet, delta) {
-  if (!target) {
+function getDailyBalanceStatus(maintenance, totalNet, delta) {
+  if (!maintenance) {
     return {
       label: "📊 Bilan",
       value: "-",
@@ -1024,22 +962,22 @@ function getDailyBalanceStatus(target, totalNet, delta) {
   }
   if (delta <= 100) {
     return {
-      label: "✅ Équilibre",
+      label: "✅ Journée équilibrée",
       value: "Proche",
-      message: "Vous êtes proche de votre objectif aujourd’hui."
+      message: "Vous êtes proche de votre maintien aujourd'hui."
     };
   }
-  if (totalNet < target) {
+  if (totalNet < maintenance) {
     return {
-      label: "📉 Déficit",
+      label: "📉 Déficit du jour",
       value: formatCalories(delta),
-      message: `Vous êtes en déficit de ${formatCalories(delta)} aujourd’hui.`
+      message: `Vous avez consommé environ ${formatCalories(delta)} de moins que votre maintien aujourd'hui.`
     };
   }
   return {
-    label: "📈 Excédent",
+    label: "📈 Excédent du jour",
     value: formatCalories(delta),
-    message: `Vous dépassez votre objectif de ${formatCalories(delta)} aujourd’hui.`
+    message: `Vous avez consommé environ ${formatCalories(delta)} de plus que votre maintien aujourd'hui.`
   };
 }
 
@@ -1177,6 +1115,7 @@ function syncTodayHistory() {
 function buildTodayHistoryEntry() {
   return {
     date: getTodayKey(),
+    maintenance: state.profile?.calculations.maintenance || 0,
     target: state.profile?.calculations.target || 0,
     eaten: sumCalories(state.meals),
     sport: sumCalories(state.sports),
@@ -1278,29 +1217,6 @@ function normalizeText(text) {
     .replace(/æ/g, "ae")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
-}
-
-function range(min, max, scale) {
-  const low = Math.round((min * scale) / 5) * 5;
-  const high = Math.round((max * scale) / 5) * 5;
-  return `${low} à ${high}`;
-}
-
-function buildAdviceSections(sections) {
-  return sections
-    .map(([title, items]) => {
-      return `
-        <div>
-          <strong>${escapeHtml(title)}</strong>
-          <ul>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
-        </div>
-      `;
-    })
-    .join("");
-}
-
-function scaleNumber(value, scale) {
-  return Math.round((value * scale) / 5) * 5;
 }
 
 function escapeHtml(value) {
