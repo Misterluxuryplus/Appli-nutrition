@@ -927,6 +927,59 @@ textarea:focus {
   line-height: 1;
 }
 
+.daily-balance-card {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  background: linear-gradient(135deg, #fffaf0 0%, #eef8f2 100%);
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 4px);
+}
+
+.daily-balance-main {
+  display: grid;
+  gap: 12px;
+}
+
+.daily-balance-main article,
+.daily-balance-details article {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(31, 67, 49, 0.08);
+  border-radius: var(--radius);
+}
+
+.daily-balance-main span,
+.daily-balance-details span {
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.daily-balance-main strong {
+  color: var(--text);
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.daily-balance-details {
+  display: grid;
+  gap: 10px;
+}
+
+.daily-balance-details strong {
+  color: var(--text);
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.balance-delta-card {
+  background: #f4f0ff !important;
+}
+
 .summary-card-food {
   background: #fff7e8 !important;
 }
@@ -1215,6 +1268,14 @@ textarea:focus {
     grid-template-columns: repeat(2, 1fr);
   }
 
+  .daily-balance-main {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .daily-balance-details {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
   .example-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -1222,6 +1283,10 @@ textarea:focus {
 
 @media (min-width: 760px) {
   .summary-simple {
+    grid-template-columns: repeat(5, 1fr);
+  }
+
+  .daily-balance-details {
     grid-template-columns: repeat(5, 1fr);
   }
 }

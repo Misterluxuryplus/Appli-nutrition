@@ -13,8 +13,8 @@
       content="MyCoachNutri aide à suivre simplement calories, repas, activité, pas et eau."
     />
     <title>MyCoachNutri</title>
-    <link rel="manifest" href="manifest.json?v=17" />
-    <link rel="stylesheet" href="style.css?v=17" />
+    <link rel="manifest" href="manifest.json?v=18" />
+    <link rel="stylesheet" href="style.css?v=18" />
   </head>
   <body>
     <div class="app-shell">
@@ -348,33 +348,47 @@
           </section>
 
           <section class="day-block" aria-labelledby="day-summary-title">
-            <h3 id="day-summary-title">Résumé du jour</h3>
-            <div class="summary-grid summary-simple">
-              <article class="summary-card-food">
-                <span class="summary-icon" aria-hidden="true">🍽</span>
-                <span>Calories mangées</span>
-                <strong id="summary-food">0 kcal</strong>
-              </article>
-              <article class="summary-card-sport">
-                <span class="summary-icon" aria-hidden="true">🏃</span>
-                <span>Calories sport</span>
-                <strong id="summary-sport">0 kcal</strong>
-              </article>
-              <article class="summary-card-steps">
-                <span class="summary-icon" aria-hidden="true">🚶</span>
-                <span>Calories marche</span>
-                <strong id="summary-steps">0 kcal</strong>
-              </article>
-              <article class="summary-card-water">
-                <span class="summary-icon" aria-hidden="true">💧</span>
-                <span>Eau</span>
-                <strong id="summary-water">0 L</strong>
-              </article>
-              <article class="summary-card-balance">
-                <span class="summary-icon" aria-hidden="true">🎯</span>
-                <span>Reste estimé</span>
-                <strong id="summary-balance">-</strong>
-              </article>
+            <h3 id="day-summary-title">📊 Bilan de votre journée</h3>
+            <div class="daily-balance-card">
+              <div class="daily-balance-main">
+                <article>
+                  <span>🍽️ Calories consommées</span>
+                  <strong id="summary-food">0 kcal</strong>
+                </article>
+                <article>
+                  <span>🎯 Objectif</span>
+                  <strong id="summary-target">-</strong>
+                </article>
+                <article class="balance-delta-card">
+                  <span id="summary-delta-label">📉 Déficit</span>
+                  <strong id="summary-delta">-</strong>
+                </article>
+              </div>
+
+              <p class="kind-message" id="kind-message">Remplissez votre profil pour obtenir une estimation adaptée.</p>
+
+              <div class="daily-balance-details" aria-label="Détails du bilan">
+                <article>
+                  <span>🔥 Métabolisme de base</span>
+                  <strong id="summary-bmr">-</strong>
+                </article>
+                <article>
+                  <span>⚖️ Maintien</span>
+                  <strong id="summary-maintenance">-</strong>
+                </article>
+                <article>
+                  <span>🏃 Calories sport</span>
+                  <strong id="summary-sport">0 kcal</strong>
+                </article>
+                <article>
+                  <span>🚶 Calories marche</span>
+                  <strong id="summary-steps">0 kcal</strong>
+                </article>
+                <article>
+                  <span>💧 Eau</span>
+                  <strong id="summary-water">0 L</strong>
+                </article>
+              </div>
             </div>
             <p class="summary-pleasure-line" id="summary-pleasure">🍫 Plaisirs notés : 0 kcal</p>
 
@@ -387,8 +401,6 @@
                 <div class="progress-fill" id="calorie-progress"></div>
               </div>
             </div>
-
-            <p class="kind-message" id="kind-message">Remplissez votre profil pour obtenir une estimation adaptée.</p>
           </section>
         </section>
 
@@ -562,6 +574,6 @@
       </nav>
     </div>
 
-    <script src="app.js?v=17" defer></script>
+    <script src="app.js?v=18" defer></script>
   </body>
 </html>
