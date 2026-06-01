@@ -436,6 +436,24 @@ textarea:focus {
   font-size: 0.9rem;
 }
 
+.helper-text.is-error {
+  padding: 10px 12px;
+  color: #8f3434;
+  font-weight: 800;
+  background: #fff1f1;
+  border: 1px solid rgba(185, 71, 71, 0.22);
+  border-radius: var(--radius);
+}
+
+.helper-text.is-success {
+  padding: 10px 12px;
+  color: var(--primary);
+  font-weight: 800;
+  background: var(--surface-muted);
+  border: 1px solid rgba(47, 111, 99, 0.16);
+  border-radius: var(--radius);
+}
+
 .craving-panel {
   display: grid;
   gap: 12px;

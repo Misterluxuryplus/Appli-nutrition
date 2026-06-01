@@ -13,8 +13,8 @@
       content="MyCoachNutri aide à suivre simplement calories, repas, activité, pas et eau."
     />
     <title>MyCoachNutri</title>
-    <link rel="manifest" href="manifest.json?v=16" />
-    <link rel="stylesheet" href="style.css?v=16" />
+    <link rel="manifest" href="manifest.json?v=17" />
+    <link rel="stylesheet" href="style.css?v=17" />
   </head>
   <body>
     <div class="app-shell">
@@ -228,7 +228,7 @@
               <article class="meal-moment-card meal-pleasure">
                 <h4>🍫 Écart / plaisir</h4>
                 <p>Un plaisir n’annule pas vos efforts. On le note simplement pour garder un repère.</p>
-                <button class="primary-action" type="button" data-meal-type="pleasure">Ajouter un plaisir</button>
+                <button class="primary-action" type="button" data-meal-type="pleasure">Ajouter un écart / plaisir</button>
                 <ul class="entry-list compact-list" data-meal-list="pleasure" aria-label="Plaisirs ajoutés"></ul>
               </article>
             </div>
@@ -245,7 +245,7 @@
                 <textarea name="description" rows="4" placeholder="Ex : riz, poulet, légumes, yaourt" required></textarea>
               </label>
 
-              <p class="helper-text" id="meal-estimate-status">Estimation approximative.</p>
+              <p class="helper-text" id="meal-estimate-status" role="status" aria-live="polite">Estimation approximative.</p>
 
               <label class="secondary-action scan-label" for="barcode-scan-input">📷 Scanner un produit</label>
               <input class="scanner-input" id="barcode-scan-input" type="file" accept="image/*" capture="environment" />
@@ -303,7 +303,7 @@
                 </div>
               </fieldset>
 
-              <button class="primary-action" type="submit" id="meal-submit-button">Estimer le repas</button>
+              <button class="primary-action" type="submit" id="meal-submit-button">Estimer mon repas</button>
             </form>
           </section>
 
@@ -562,6 +562,6 @@
       </nav>
     </div>
 
-    <script src="app.js?v=16" defer></script>
+    <script src="app.js?v=17" defer></script>
   </body>
 </html>

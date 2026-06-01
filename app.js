@@ -258,23 +258,33 @@ function bindMeals() {
 
   mealForm.addEventListener("submit", async (event) => {
     event.preventDefault();
+    console.log("submit repas déclenché");
     const formData = new FormData(mealForm);
     const description = String(formData.get("description")).trim();
     const mealType = formData.get("mealType") || "breakfast";
     const portion = formData.get("portion");
-    mealEstimateStatus.textContent = "Estimation approximative.";
+    console.log("mealType:", mealType);
+    console.log("description:", description);
+
+    if (!description) {
+      setMealEstimateStatus("Décrivez votre repas avant de l'estimer.", "error");
+      return;
+    }
+
+    setMealEstimateStatus("Estimation approximative.", "default");
     mealSubmitButton.disabled = true;
     mealSubmitButton.textContent = "Estimation...";
 
     const estimate = estimateMealCalories(description, portion);
+    console.log("calories:", estimate.calories || 0);
 
     mealSubmitButton.disabled = false;
     configureMealForm(mealType);
 
     if (!estimate.found) {
-      mealEstimateStatus.textContent = estimate.reason === "quantity"
+      setMealEstimateStatus(estimate.reason === "quantity"
         ? "Quantité non claire. Ajoutez une quantité précise, par exemple 150 g de riz cuit, 1 poire ou 2 œufs."
-        : "Aliment non trouvé. Essayez d'ajouter une quantité ou un nom plus précis. Estimation approximative.";
+        : "Aliment non trouvé. Essayez d'ajouter une quantité ou un nom plus précis. Estimation approximative.", "error");
       return;
     }
 
@@ -296,6 +306,11 @@ function bindMeals() {
     saveState();
     render();
   });
+
+  mealForm.addEventListener("invalid", (event) => {
+    event.preventDefault();
+    setMealEstimateStatus("Complétez les champs du repas avant de valider.", "error");
+  }, true);
 
   barcodeScanInput.addEventListener("change", () => {
     handleBarcodeScan(barcodeScanInput.files?.[0]);
@@ -389,8 +404,14 @@ function configureMealForm(mealType) {
   portionLightLabel.textContent = isPleasure ? "Petit plaisir" : "Léger";
   portionNormalLabel.textContent = isPleasure ? "Moyen plaisir" : "Normal";
   portionHeartyLabel.textContent = isPleasure ? "Gros plaisir" : "Copieux";
-  mealSubmitButton.textContent = isPleasure ? "Estimer le plaisir" : "Estimer le repas";
-  mealEstimateStatus.textContent = "Estimation approximative.";
+  mealSubmitButton.textContent = "Estimer mon repas";
+  setMealEstimateStatus("Estimation approximative.", "default");
+}
+
+function setMealEstimateStatus(message, type = "default") {
+  mealEstimateStatus.textContent = message;
+  mealEstimateStatus.classList.toggle("is-error", type === "error");
+  mealEstimateStatus.classList.toggle("is-success", type === "success");
 }
 
 async function handleBarcodeScan(file) {
