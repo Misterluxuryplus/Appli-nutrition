@@ -54,7 +54,7 @@ button {
   width: min(100%, 760px);
   min-height: 100vh;
   margin: 0 auto;
-  padding: 16px 16px 128px;
+  padding: 16px 16px 148px;
 }
 
 .update-banner {
@@ -159,10 +159,10 @@ button {
 }
 
 .hero-view {
-  min-height: calc(100vh - 150px);
+  min-height: calc(100vh - 170px);
   display: none;
   align-content: center;
-  gap: 22px;
+  gap: 24px;
 }
 
 .hero-view.is-active {
@@ -170,16 +170,23 @@ button {
 }
 
 .hero-copy {
-  padding-top: 20px;
+  display: grid;
+  gap: 22px;
+  padding-top: 18px;
 }
 
 .eyebrow {
-  margin: 0 0 8px;
+  width: fit-content;
+  margin: 0;
+  padding: 8px 12px;
   color: var(--primary);
   font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0;
-  text-transform: uppercase;
+  line-height: 1.25;
+  background: rgba(238, 246, 241, 0.9);
+  border: 1px solid rgba(47, 111, 99, 0.14);
+  border-radius: 999px;
 }
 
 h1,
@@ -190,8 +197,8 @@ h2 {
 }
 
 h1 {
-  max-width: 12ch;
-  font-size: clamp(2.45rem, 13vw, 4.6rem);
+  max-width: 13ch;
+  font-size: clamp(2.15rem, 10vw, 4rem);
 }
 
 h2 {
@@ -209,24 +216,34 @@ h2 {
 
 .hero-copy p:not(.eyebrow) {
   max-width: 34rem;
-  margin: 18px 0 24px;
+  margin: -8px 0 0;
   font-size: 1.05rem;
 }
 
 .home-card-grid {
   display: grid;
-  gap: 10px;
-  margin: 0 0 22px;
+  gap: 12px;
+  margin: 0;
 }
 
 .home-card-grid article {
   display: grid;
-  gap: 6px;
-  padding: 14px;
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  gap: 8px;
+  padding: 16px;
+  background: #fff8ea;
+  border: 1px solid rgba(213, 139, 69, 0.18);
+  border-radius: 14px;
   box-shadow: 0 10px 28px rgba(33, 48, 45, 0.08);
+}
+
+.home-card-grid article:nth-child(2) {
+  background: #edf7f2;
+  border-color: rgba(47, 111, 99, 0.16);
+}
+
+.home-card-grid article:nth-child(3) {
+  background: #f4f1ff;
+  border-color: rgba(82, 79, 150, 0.14);
 }
 
 .home-card-grid strong {
@@ -234,6 +251,25 @@ h2 {
 }
 
 .home-card-grid span {
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.home-encouragement {
+  display: grid;
+  gap: 5px;
+  padding: 15px 16px;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(47, 111, 99, 0.14);
+  border-radius: 16px;
+  box-shadow: 0 12px 30px rgba(33, 48, 45, 0.08);
+}
+
+.home-encouragement strong {
+  font-size: 1rem;
+}
+
+.home-encouragement span {
   color: var(--muted);
   line-height: 1.4;
 }
@@ -1145,6 +1181,10 @@ textarea:focus {
     grid-template-columns: repeat(2, 1fr);
   }
 
+  .home-card-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
   .result-panel {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -1165,6 +1205,16 @@ textarea:focus {
 @media (min-width: 760px) {
   .summary-simple {
     grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+@media (max-width: 639px) {
+  h1 {
+    font-size: clamp(2.05rem, 10vw, 2.6rem);
+  }
+
+  .hero-copy {
+    gap: 20px;
   }
 }
 
