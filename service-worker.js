@@ -1,12 +1,12 @@
 "use strict";
 
-const CACHE_NAME = "mycoachnutri-v18";
+const CACHE_NAME = "mycoachnutri-v10";
 const CORE_ASSETS = [
   "./",
   "./index.html",
-  "./style.css?v=18",
-  "./app.js?v=18",
-  "./manifest.json?v=18"
+  "./style.css?v=10",
+  "./app.js?v=10",
+  "./manifest.json?v=10"
 ];
 
 self.addEventListener("install", (event) => {
@@ -22,20 +22,19 @@ self.addEventListener("install", (event) => {
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames
-          .filter((cacheName) => {
-            const isAppCache = cacheName.startsWith("objectif-equilibre-") || cacheName.startsWith("mycoachnutri-");
-            return isAppCache && cacheName !== CACHE_NAME;
-          })
-          .map((cacheName) => caches.delete(cacheName))
-      );
-    })
+    caches.keys()
+      .then((cacheNames) => {
+        return Promise.all(
+          cacheNames
+            .filter((cacheName) => {
+              const isAppCache = cacheName.startsWith("objectif-equilibre-") || cacheName.startsWith("mycoachnutri-");
+              return isAppCache && cacheName !== CACHE_NAME;
+            })
+            .map((cacheName) => caches.delete(cacheName))
+        );
+      })
+      .then(() => self.clients.claim())
   );
-
-  // Prend le contrôle des onglets ouverts sans attendre leur fermeture.
-  self.clients.claim();
 });
 
 self.addEventListener("message", (event) => {

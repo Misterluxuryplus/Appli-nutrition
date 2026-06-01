@@ -881,22 +881,19 @@ function renderWater() {
 function renderSummary() {
   const calculations = state.profile?.calculations || {};
   const target = calculations.target || 0;
-  const bmr = calculations.bmr || 0;
-  const maintenance = calculations.maintenance || 0;
   const eaten = sumCalories(state.meals);
   const pleasure = sumCalories(state.meals.filter((meal) => meal.mealType === "pleasure"));
   const sport = sumCalories(state.sports);
   const stepsCalories = Number(state.steps?.calories || 0);
-  const delta = Math.abs(target - eaten);
-  const isOverTarget = target > 0 && eaten > target;
-  const progress = target ? Math.min((eaten / target) * 100, 100) : 0;
+  const totalNet = eaten - sport - stepsCalories;
+  const delta = Math.abs(target - totalNet);
+  const balanceStatus = getDailyBalanceStatus(target, totalNet, delta);
+  const progress = target ? Math.min((Math.max(totalNet, 0) / target) * 100, 100) : 0;
 
   document.querySelector("#summary-food").textContent = formatCalories(eaten);
   document.querySelector("#summary-target").textContent = target ? formatCalories(target) : "-";
-  document.querySelector("#summary-delta-label").textContent = isOverTarget ? "📈 Excédent" : "📉 Déficit";
-  document.querySelector("#summary-delta").textContent = target ? formatCalories(delta) : "-";
-  document.querySelector("#summary-bmr").textContent = bmr ? formatCalories(bmr) : "-";
-  document.querySelector("#summary-maintenance").textContent = maintenance ? formatCalories(maintenance) : "-";
+  document.querySelector("#summary-delta-label").textContent = balanceStatus.label;
+  document.querySelector("#summary-delta").textContent = target ? balanceStatus.value : "-";
   document.querySelector("#summary-sport").textContent = formatCalories(sport);
   document.querySelector("#summary-steps").textContent = formatCalories(stepsCalories);
   document.querySelector("#summary-pleasure").textContent = `🍫 Plaisirs notés : ${formatCalories(pleasure)}`;
@@ -904,8 +901,8 @@ function renderSummary() {
 
   const progressFill = document.querySelector("#calorie-progress");
   progressFill.style.width = `${progress}%`;
-  progressFill.classList.toggle("is-over", target > 0 && eaten > target);
-  document.querySelector("#kind-message").textContent = buildDailyBalanceMessage(target, eaten, delta, isOverTarget);
+  progressFill.classList.toggle("is-over", target > 0 && totalNet > target);
+  document.querySelector("#kind-message").textContent = balanceStatus.message;
 }
 
 function renderHistory() {
@@ -1017,11 +1014,33 @@ function buildKindMessage(target, remaining) {
   return "Journée plus haute que prévu. Reprenez simplement votre équilibre au prochain repas.";
 }
 
-function buildDailyBalanceMessage(target, eaten, delta, isOverTarget) {
-  if (!target) return "Remplissez votre profil pour obtenir une estimation adaptée.";
-  if (eaten === target) return "Vous êtes exactement sur votre objectif aujourd'hui.";
-  const direction = isOverTarget ? "de plus" : "de moins";
-  return `Vous avez mangé ${formatCalories(delta)} ${direction} que votre objectif aujourd'hui.`;
+function getDailyBalanceStatus(target, totalNet, delta) {
+  if (!target) {
+    return {
+      label: "📊 Bilan",
+      value: "-",
+      message: "Remplissez votre profil pour obtenir une estimation adaptée."
+    };
+  }
+  if (delta <= 100) {
+    return {
+      label: "✅ Équilibre",
+      value: "Proche",
+      message: "Vous êtes proche de votre objectif aujourd’hui."
+    };
+  }
+  if (totalNet < target) {
+    return {
+      label: "📉 Déficit",
+      value: formatCalories(delta),
+      message: `Vous êtes en déficit de ${formatCalories(delta)} aujourd’hui.`
+    };
+  }
+  return {
+    label: "📈 Excédent",
+    value: formatCalories(delta),
+    message: `Vous dépassez votre objectif de ${formatCalories(delta)} aujourd’hui.`
+  };
 }
 
 function saveSteps(steps) {

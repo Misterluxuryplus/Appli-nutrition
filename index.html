@@ -13,8 +13,8 @@
       content="MyCoachNutri aide à suivre simplement calories, repas, activité, pas et eau."
     />
     <title>MyCoachNutri</title>
-    <link rel="manifest" href="manifest.json?v=18" />
-    <link rel="stylesheet" href="style.css?v=18" />
+    <link rel="manifest" href="manifest.json?v=10" />
+    <link rel="stylesheet" href="style.css?v=10" />
   </head>
   <body>
     <div class="app-shell">
@@ -352,12 +352,20 @@
             <div class="daily-balance-card">
               <div class="daily-balance-main">
                 <article>
-                  <span>🍽️ Calories consommées</span>
+                  <span>🍽️ Vous avez mangé</span>
                   <strong id="summary-food">0 kcal</strong>
                 </article>
                 <article>
-                  <span>🎯 Objectif</span>
+                  <span>🎯 Votre objectif du jour</span>
                   <strong id="summary-target">-</strong>
+                </article>
+                <article>
+                  <span>🏃 Sport</span>
+                  <strong id="summary-sport">0 kcal</strong>
+                </article>
+                <article>
+                  <span>🚶 Marche / pas</span>
+                  <strong id="summary-steps">0 kcal</strong>
                 </article>
                 <article class="balance-delta-card">
                   <span id="summary-delta-label">📉 Déficit</span>
@@ -368,22 +376,6 @@
               <p class="kind-message" id="kind-message">Remplissez votre profil pour obtenir une estimation adaptée.</p>
 
               <div class="daily-balance-details" aria-label="Détails du bilan">
-                <article>
-                  <span>🔥 Métabolisme de base</span>
-                  <strong id="summary-bmr">-</strong>
-                </article>
-                <article>
-                  <span>⚖️ Maintien</span>
-                  <strong id="summary-maintenance">-</strong>
-                </article>
-                <article>
-                  <span>🏃 Calories sport</span>
-                  <strong id="summary-sport">0 kcal</strong>
-                </article>
-                <article>
-                  <span>🚶 Calories marche</span>
-                  <strong id="summary-steps">0 kcal</strong>
-                </article>
                 <article>
                   <span>💧 Eau</span>
                   <strong id="summary-water">0 L</strong>
@@ -574,6 +566,6 @@
       </nav>
     </div>
 
-    <script src="app.js?v=18" defer></script>
+    <script src="app.js?v=10" defer></script>
   </body>
 </html>
