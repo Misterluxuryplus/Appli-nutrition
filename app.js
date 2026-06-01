@@ -111,12 +111,6 @@ const LOCAL_NUTRITION_DATABASE = [
   { name: "burger", aliases: ["burger", "hamburger"], kcal100: 295, defaultGrams: 220 }
 ];
 
-const portionFactors = {
-  light: 0.75,
-  normal: 1,
-  hearty: 1.3
-};
-
 const portionLabels = {
   light: "Léger",
   normal: "Normal",
@@ -278,8 +272,9 @@ function bindMeals() {
     configureMealForm(mealType);
 
     if (!estimate.found) {
-      mealEstimateStatus.textContent =
-        "Aliment non trouvé. Essayez d'ajouter une quantité ou un nom plus précis. Estimation approximative.";
+      mealEstimateStatus.textContent = estimate.reason === "quantity"
+        ? "Quantité non claire. Ajoutez une quantité précise, par exemple 150 g de riz cuit, 1 poire ou 2 œufs."
+        : "Aliment non trouvé. Essayez d'ajouter une quantité ou un nom plus précis. Estimation approximative.";
       return;
     }
 
@@ -564,20 +559,25 @@ function calculateProfile(profile) {
 
 function estimateMealCalories(description, portion) {
   const localEstimate = estimateFromLocalNutrition(description, portion);
-  return localEstimate.found ? localEstimate : { found: false };
+  return localEstimate;
 }
 
 function estimateFromLocalNutrition(description, portion) {
   const normalized = normalizeText(description);
   const matches = [];
   const usedFoods = new Set();
+  let needsQuantity = false;
 
   LOCAL_NUTRITION_DATABASE.forEach((food) => {
     const alias = findFoodAlias(normalized, food);
     if (!alias || usedFoods.has(food.name)) return;
     const explicitGrams = extractExplicitAmount(normalized, alias);
     const quantity = extractServingQuantity(normalized, alias);
-    const grams = explicitGrams || quantity * food.defaultGrams || food.defaultGrams || 100;
+    if (!explicitGrams && !quantity) {
+      needsQuantity = true;
+      return;
+    }
+    const grams = explicitGrams || quantity * food.defaultGrams;
     const calories = food.unitCalories && !explicitGrams
       ? Math.round(quantity * food.unitCalories)
       : calculateFoodCalories(grams, food.kcal100);
@@ -585,10 +585,10 @@ function estimateFromLocalNutrition(description, portion) {
     usedFoods.add(food.name);
   });
 
+  if (needsQuantity) return { found: false, reason: "quantity" };
   if (!matches.length) return { found: false };
 
-  const portionFactor = portionFactors[portion] || 1;
-  const total = Math.round(matches.reduce((sum, item) => sum + item.calories, 0) * portionFactor);
+  const total = Math.round(matches.reduce((sum, item) => sum + item.calories, 0));
   const details = matches
     .map((item) => {
       if (item.usesUnitCalories) {
@@ -689,7 +689,7 @@ function extractServingQuantity(text, alias) {
     cinq: 5
   };
   const word = Object.keys(words).find((key) => new RegExp(`\\b${key}\\s+(?:de\\s+|d'|du\\s+|des\\s+)?${escapedAlias}\\b`).test(text));
-  return word ? words[word] : 1;
+  return word ? words[word] : 0;
 }
 
 function calculateFoodCalories(grams, kcal100) {
