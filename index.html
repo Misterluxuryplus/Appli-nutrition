@@ -1,523 +1,330 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="fr">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#2f6f63" />
-    <meta name="application-name" content="MyCoachNutri" />
-    <meta name="apple-mobile-web-app-title" content="MyCoachNutri" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta
-      name="description"
-      content="MyCoachNutri aide à suivre simplement calories, repas, activité, pas et eau."
-    />
-    <title>MyCoachNutri</title>
-    <link rel="manifest" href="manifest.json?v=11" />
-    <link rel="stylesheet" href="style.css?v=11" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Muscu Coach</title>
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div class="app-shell">
-      <div class="update-banner" id="update-banner" hidden>
-        <span>Nouvelle version disponible. Cliquez pour mettre à jour.</span>
-        <button type="button" id="update-button">Mettre à jour</button>
-      </div>
+    <section class="profile-screen" id="profileScreen">
+      <form class="profile-card" id="profileForm">
+        <p class="kicker">Première configuration</p>
+        <h1>Crée ton profil</h1>
+        <p class="profile-intro">Ces infos servent à garder ton suivi dans le temps.</p>
 
-      <header class="topbar" aria-label="Navigation principale">
-        <button class="brand-button" type="button" data-view-target="home" aria-label="Retour à l'accueil">
-          <span class="brand-mark">MCN</span>
-          <span>
-            <strong>MyCoachNutri</strong>
-            <small>Votre coach nutrition au quotidien</small>
-          </span>
-        </button>
-        <button class="icon-button" type="button" data-view-target="settings" aria-label="Réglages">
-          <span aria-hidden="true">⚙</span>
-        </button>
+        <label>Prénom
+          <input id="profileFirstName" type="text" autocomplete="given-name" required>
+        </label>
+        <label>Âge
+          <input id="profileAge" type="number" min="12" max="100" required>
+        </label>
+        <label>Poids actuel
+          <input id="profileBodyWeight" type="number" min="20" max="250" step="0.1" required>
+        </label>
+        <div class="choice-block">
+          <span>Mon objectif</span>
+          <div class="choice-cards" id="profileGoalChoices"></div>
+        </div>
+        <div class="choice-block">
+          <span>Niveau</span>
+          <div class="choice-cards compact" id="profileLevelChoices"></div>
+        </div>
+        <div class="choice-block">
+          <span>Durée du programme</span>
+          <div class="choice-cards compact" id="profileDurationChoices"></div>
+        </div>
+        <div class="choice-block">
+          <span>Quand veux-tu commencer ton programme ?</span>
+          <div class="choice-cards" id="profileStartChoices"></div>
+          <input class="hidden" id="profileStartDate" type="date">
+        </div>
+        <button class="primary-button" type="submit">Commencer</button>
+      </form>
+    </section>
+
+    <main class="phone-app hidden" id="appShell">
+      <header class="app-header">
+        <div>
+          <p class="kicker">Muscu Coach</p>
+          <h1>Coach de progression</h1>
+        </div>
       </header>
 
-      <main>
-        <section class="view is-active hero-view" id="home" aria-labelledby="home-title">
-          <div class="hero-copy">
-            <p class="eyebrow">🥗 🍎 💧 🚶 Votre journée, en mieux</p>
-            <h1 id="home-title">Comprenez vos calories en 1 minute</h1>
-            <p>
-              Calculez votre métabolisme, suivez vos repas et avancez sans culpabilité.
-            </p>
-            <div class="home-card-grid" aria-label="Ce que l'application calcule">
-              <article>
-                <strong>🔥 Métabolisme de base</strong>
-                <span>Ce que votre corps brûle au repos</span>
-              </article>
-              <article>
-                <strong>⚖️ Maintien</strong>
-                <span>Pour garder votre poids stable</span>
-              </article>
-              <article>
-                <strong>📉 Perte progressive</strong>
-                <span>Pour avancer simplement</span>
-              </article>
+      <section class="screen active" id="homeScreen" aria-label="Accueil">
+        <article class="home-focus-card">
+          <p class="home-greeting" id="homeGreeting">Salut, prêt pour aujourd’hui ?</p>
+          <p class="program-marker" id="programMarker">Semaine 1 · Séance 1</p>
+          <div class="program-progress">
+            <div class="program-progress-head">
+              <span>Progression du programme</span>
+              <strong id="programProgressText">0%</strong>
             </div>
-            <div class="home-encouragement">
-              <strong>Pas besoin d'être parfait.</strong>
-              <span>L'important, c'est de comprendre et d'avancer.</span>
-            </div>
-            <button class="primary-action" type="button" data-view-target="profile">🚀 Calculer mon profil</button>
+            <div class="program-progress-bar" aria-hidden="true"><span id="programProgressBar"></span></div>
           </div>
-
-          <div class="notice" role="note">
-            Cette application donne une estimation et ne remplace pas un médecin, un diététicien ou un professionnel de
-            santé.
+          <div class="today-workout-card">
+            <span class="kicker">Séance du jour</span>
+            <h2 id="homeSessionName">Reprise douce</h2>
+            <p id="homeSessionDescription">Séance légère pour reprendre le rythme.</p>
+            <p id="homeSessionMeta">35 min · Jambes, Dos, Pectoraux</p>
+            <small id="homeSessionDate">Prévue aujourd’hui</small>
           </div>
-        </section>
-
-        <section class="view" id="profile" aria-labelledby="profile-title">
-          <div class="section-heading">
-            <p class="eyebrow">Profil</p>
-            <h2 id="profile-title">Vos repères</h2>
+          <p class="home-motivation" id="homeMotivation">La régularité est la clé 🔑</p>
+          <div class="home-actions">
+            <button class="primary-button" id="goTraining" type="button">Je commence mon entraînement</button>
+            <button class="ghost-button" id="viewProgress" type="button">Voir ma progression</button>
           </div>
+        </article>
+      </section>
 
-          <form class="stack" id="profile-form">
-            <fieldset>
-              <legend>Sexe</legend>
-              <div class="segmented-control">
-                <label>
-                  <input type="radio" name="sex" value="male" required />
-                  <span>Homme</span>
-                </label>
-                <label>
-                  <input type="radio" name="sex" value="female" required />
-                  <span>Femme</span>
-                </label>
-              </div>
-            </fieldset>
+      <section class="screen" id="sessionScreen" aria-label="Séance">
+        <article class="session-hero">
+          <div>
+            <p class="kicker" id="sessionType">Force</p>
+            <h2 id="sessionName">Séance du jour</h2>
+            <p id="sessionDescription">Séance simple et progressive.</p>
+            <p id="sessionMuscles">Pectoraux · Épaules · Triceps</p>
+          </div>
+          <div class="session-metrics">
+            <span id="sessionDuration">45 min</span>
+            <span id="sessionCalories">360 kcal</span>
+          </div>
+        </article>
 
-            <div class="field-grid">
-              <label>
-                <span>Âge</span>
-                <input type="number" name="age" min="13" max="100" inputmode="numeric" placeholder="32" required />
-              </label>
-              <label>
-                <span>Taille en cm</span>
-                <input type="number" name="height" min="120" max="230" inputmode="decimal" placeholder="175" required />
-              </label>
-              <label>
-                <span>Poids en kg</span>
-                <input type="number" name="weight" min="35" max="250" step="0.1" inputmode="decimal" placeholder="72" required />
-              </label>
-              <label>
-                <span>Sport par semaine</span>
-                <input type="number" name="weeklySport" min="0" max="14" inputmode="numeric" placeholder="3" required />
-              </label>
-            </div>
+        <article class="panel warmup-panel">
+          <div class="panel-title">
+            <h3>Échauffement cardio</h3>
+            <span id="warmupStatus">15 min</span>
+          </div>
+          <p>L’échauffement prépare les muscles et les articulations avant la séance. Il aide à réduire les risques de blessure et améliore les performances.</p>
+          <div class="warmup-list" id="warmupList"></div>
+          <button class="ghost-button" id="addWarmup" type="button">Ajouter un autre échauffement</button>
+          <button class="ghost-button" id="skipWarmup" type="button">Ignorer l’échauffement</button>
+        </article>
 
-            <label>
-              <span>Envie principale</span>
-              <select name="goal" required>
-                <option value="">Choisir</option>
-                <option value="lose">Perdre du poids</option>
-                <option value="cut">Sécher légèrement</option>
-                <option value="maintain">Maintenir</option>
-                <option value="muscle">Prise de muscle</option>
+        <section class="exercise-list" id="exerciseList"></section>
+
+        <article class="panel cardio-panel">
+          <div class="panel-title">
+            <h3>Cardio</h3>
+            <span id="cardioCaloriesPreview">0 kcal</span>
+          </div>
+          <div class="cardio-grid">
+            <label>Type
+              <select id="cardioType">
+                <option value="tapis de course">Tapis de course</option>
+                <option value="vélo droit">Vélo droit</option>
+                <option value="vélo semi-allongé">Vélo semi-allongé</option>
+                <option value="rameur">Rameur</option>
+                <option value="elliptique">Elliptique</option>
+                <option value="stairmaster">Stairmaster</option>
+                <option value="marche inclinée">Marche inclinée</option>
+                <option value="assault bike">Assault bike</option>
+                <option value="corde à sauter">Corde à sauter</option>
+                <option value="autre">Autre</option>
               </select>
             </label>
-
-            <fieldset>
-              <legend>Activité quotidienne</legend>
-              <div class="segmented-control">
-                <label>
-                  <input type="radio" name="activity" value="low" required />
-                  <span>Faible</span>
-                </label>
-                <label>
-                  <input type="radio" name="activity" value="medium" required />
-                  <span>Moyenne</span>
-                </label>
-                <label>
-                  <input type="radio" name="activity" value="high" required />
-                  <span>Élevée</span>
-                </label>
-              </div>
-            </fieldset>
-
-            <button class="primary-action" type="submit">Calculer mon profil</button>
-          </form>
-
-          <div class="result-panel goal-result profile-result-stack" id="profile-results" hidden>
-            <section class="profile-metric-card" aria-live="polite">
-              <p class="profile-metric-title">🔥 Métabolisme de base</p>
-              <strong id="bmr-result">-</strong>
-              <p id="bmr-sentence">-</p>
-            </section>
-
-            <section class="profile-metric-card">
-              <p class="profile-metric-title">⚖️ Maintien</p>
-              <strong id="maintenance-result">-</strong>
-              <p id="maintenance-sentence">-</p>
-            </section>
-
-            <section class="profile-metric-card">
-              <p class="profile-metric-title">📉 Pour perdre du poids progressivement</p>
-              <p>Essayez de rester autour de :</p>
-              <strong id="target-result">-</strong>
-              <p id="target-sentence">Cette valeur reste une estimation simple.</p>
-            </section>
-
-          </div>
-        </section>
-
-        <section class="view" id="day" aria-labelledby="day-title">
-          <div class="section-heading">
-            <p class="eyebrow">Aujourd’hui</p>
-            <h2 id="day-title">Ma journée</h2>
-          </div>
-
-          <section class="day-block" aria-labelledby="day-meals-title">
-            <h3 id="day-meals-title">Repas</h3>
-            <div class="meal-moment-grid">
-              <article class="meal-moment-card meal-breakfast">
-                <h4>☀️ Petit-déjeuner</h4>
-                <button class="primary-action" type="button" data-meal-type="breakfast">Ajouter mon petit-déjeuner</button>
-                <ul class="entry-list compact-list" data-meal-list="breakfast" aria-label="Petits-déjeuners ajoutés"></ul>
-              </article>
-              <article class="meal-moment-card meal-lunch">
-                <h4>🍽️ Déjeuner</h4>
-                <button class="primary-action" type="button" data-meal-type="lunch">Ajouter mon déjeuner</button>
-                <ul class="entry-list compact-list" data-meal-list="lunch" aria-label="Déjeuners ajoutés"></ul>
-              </article>
-              <article class="meal-moment-card meal-dinner">
-                <h4>🌙 Dîner</h4>
-                <button class="primary-action" type="button" data-meal-type="dinner">Ajouter mon dîner</button>
-                <ul class="entry-list compact-list" data-meal-list="dinner" aria-label="Dîners ajoutés"></ul>
-              </article>
-              <article class="meal-moment-card meal-snack">
-                <h4>🍫 Collation</h4>
-                <button class="primary-action" type="button" data-meal-type="snack">Ajouter une collation</button>
-                <ul class="entry-list compact-list" data-meal-list="snack" aria-label="Collations ajoutées"></ul>
-              </article>
-              <article class="meal-moment-card meal-pleasure">
-                <h4>🍫 Écart / plaisir</h4>
-                <p>Un plaisir n’annule pas vos efforts. On le note simplement pour garder un repère.</p>
-                <button class="primary-action" type="button" data-meal-type="pleasure">Ajouter un écart / plaisir</button>
-                <ul class="entry-list compact-list" data-meal-list="pleasure" aria-label="Plaisirs ajoutés"></ul>
-              </article>
-            </div>
-
-            <form class="stack meal-form-panel" id="meal-form" hidden>
-              <input type="hidden" name="mealType" value="breakfast" />
-              <div class="form-panel-heading">
-                <p class="eyebrow" id="selected-meal-eyebrow">Repas</p>
-                <h3 id="selected-meal-title">Ajouter mon petit-déjeuner</h3>
-              </div>
-
-              <label>
-                <span>Ce que vous avez mangé</span>
-                <textarea name="description" rows="4" placeholder="Ex : riz, poulet, légumes, yaourt" required></textarea>
-              </label>
-
-              <p class="helper-text" id="meal-estimate-status" role="status" aria-live="polite">Estimation approximative.</p>
-
-              <label class="secondary-action scan-label" for="barcode-scan-input">📷 Scanner un produit</label>
-              <input class="scanner-input" id="barcode-scan-input" type="file" accept="image/*" capture="environment" />
-              <p class="helper-text" id="barcode-status">Pour les produits industriels, Open Food Facts est utilisé en priorité.</p>
-              <div class="barcode-result" id="barcode-result" hidden>
-                <p>✅ Produit détecté</p>
-                <strong id="barcode-product-name">Nom du produit</strong>
-                <span id="barcode-product-brand">Marque</span>
-                <dl class="barcode-facts">
-                  <div>
-                    <dt>Calories</dt>
-                    <dd id="barcode-product-calories">-</dd>
-                  </div>
-                  <div>
-                    <dt>Portion détectée</dt>
-                    <dd id="barcode-product-serving">-</dd>
-                  </div>
-                </dl>
-                <fieldset>
-                  <legend>Quantité consommée</legend>
-                  <div class="quick-choice-grid barcode-choices">
-                    <button type="button" data-product-quantity="330" data-product-unit="ml">1 canette 330 ml</button>
-                    <button type="button" data-product-quantity="500" data-product-unit="ml">1 bouteille 500 ml</button>
-                    <button type="button" data-product-quantity="serving">1 portion</button>
-                  </div>
-                </fieldset>
-                <label>
-                  <span>Quantité personnalisée</span>
-                  <input type="number" id="barcode-custom-quantity" min="0" max="3000" inputmode="decimal" placeholder="Ex : 125" />
-                </label>
-                <p class="helper-text" id="barcode-quantity-status">Choisissez une quantité pour calculer les calories.</p>
-                <button class="primary-action" type="button" id="barcode-add-day">Ajouter à ma journée</button>
-              </div>
-
-              <div class="inline-actions">
-                <button class="secondary-action" type="button" id="voice-button">🎙 Micro</button>
-                <p class="helper-text" id="voice-status">Reconnaissance vocale si disponible.</p>
-              </div>
-
-              <fieldset>
-                <legend id="portion-legend">Taille du repas</legend>
-                <div class="segmented-control">
-                  <label>
-                    <input type="radio" name="portion" value="light" required />
-                    <span id="portion-light-label">Léger</span>
-                  </label>
-                  <label>
-                    <input type="radio" name="portion" value="normal" checked required />
-                    <span id="portion-normal-label">Normal</span>
-                  </label>
-                  <label>
-                    <input type="radio" name="portion" value="hearty" required />
-                    <span id="portion-hearty-label">Copieux</span>
-                  </label>
-                </div>
-              </fieldset>
-
-              <button class="primary-action" type="submit" id="meal-submit-button">Estimer mon repas</button>
-            </form>
-          </section>
-
-          <section class="day-block" aria-labelledby="sport-title">
-            <h3 id="sport-title">🏃 Sport</h3>
-            <form class="stack" id="sport-form">
-              <label>
-                <span>Calories brûlées</span>
-                <input type="number" name="calories" min="0" max="3000" inputmode="numeric" placeholder="350 kcal" required />
-              </label>
-              <button class="primary-action" type="submit">Ajouter le sport</button>
-            </form>
-            <ul class="entry-list" id="sport-list" aria-label="Sports ajoutés"></ul>
-          </section>
-
-          <section class="day-block steps-panel" aria-labelledby="steps-title">
-            <div class="steps-heading">
-            <h3 id="steps-title">🚶 Pas du jour</h3>
-              <p id="steps-message">Même sans salle, marcher aide beaucoup.</p>
-            </div>
-            <label>
-              <span>Nombre de pas</span>
-              <input type="number" id="steps-input" min="0" max="60000" step="100" inputmode="numeric" placeholder="8000" />
+            <label>Durée
+              <input id="cardioDuration" type="number" min="0" max="240" step="1" value="0">
             </label>
-            <p class="steps-estimate" id="steps-estimate">0 pas ≈ 0 kcal</p>
-          </section>
-
-          <section class="day-block water-panel" aria-labelledby="water-title">
-            <div>
-              <h3 id="water-title">💧 Eau</h3>
-              <p id="water-message">Boire aide aussi la satiété et l’énergie.</p>
-            </div>
-            <div class="quick-choice-grid water-choices" aria-label="Suivi hydratation">
-              <button type="button" data-water="0">0 L</button>
-              <button type="button" data-water="0.5">0,5 L</button>
-              <button type="button" data-water="1">1 L</button>
-              <button type="button" data-water="1.5">1,5 L</button>
-              <button type="button" data-water="2">2 L</button>
-              <button type="button" data-water="2.5">2,5 L</button>
-              <button type="button" data-water="3">3 L</button>
-            </div>
-          </section>
-
-          <section class="day-block" aria-labelledby="day-summary-title">
-            <h3 id="day-summary-title">📊 Ma journée</h3>
-            <div class="daily-balance-card">
-              <div class="daily-balance-main">
-                <article>
-                  <span>🍽️ Calories consommées</span>
-                  <strong id="summary-food">0 kcal</strong>
-                </article>
-                <article>
-                  <span>🏃 Sport</span>
-                  <strong id="summary-sport">0 kcal</strong>
-                </article>
-                <article>
-                  <span>🚶 Pas / marche</span>
-                  <strong id="summary-steps">0 kcal</strong>
-                </article>
-                <article>
-                  <span>⚖️ Maintien</span>
-                  <strong id="summary-maintenance">-</strong>
-                </article>
-                <article class="balance-delta-card">
-                  <span id="summary-delta-label">📉 Déficit du jour</span>
-                  <strong id="summary-delta">-</strong>
-                </article>
-              </div>
-
-              <p class="kind-message" id="kind-message">Remplissez votre profil pour obtenir une estimation adaptée.</p>
-            </div>
-          </section>
-        </section>
-
-        <section class="view" id="history" aria-labelledby="history-title">
-          <div class="section-heading">
-            <p class="eyebrow">Suivi simple</p>
-            <h2 id="history-title">📅 Historique</h2>
+            <label>Calories machine
+              <input id="cardioCalories" type="number" min="0" max="3000" step="1" value="0">
+            </label>
           </div>
+        </article>
 
-          <section class="history-block" aria-labelledby="history-days-title">
-            <h3 id="history-days-title">Mes journées</h3>
-            <div class="history-list" id="history-list" aria-label="Journées enregistrées"></div>
-            <div class="history-detail" id="history-detail" hidden>
-              <h3 id="history-detail-title">Détail de la journée</h3>
-              <dl class="detail-list">
-                <div>
-                  <dt>🍽️ Calories consommées</dt>
-                  <dd id="history-detail-food">-</dd>
-                </div>
-                <div>
-                  <dt>🏃 Calories sport</dt>
-                  <dd id="history-detail-sport">-</dd>
-                </div>
-                <div>
-                  <dt>🚶 Pas</dt>
-                  <dd id="history-detail-steps">-</dd>
-                </div>
-                <div>
-                  <dt>💧 Eau</dt>
-                  <dd id="history-detail-water">-</dd>
-                </div>
-                <div>
-                  <dt>🎯 Bilan de la journée</dt>
-                  <dd id="history-detail-status">-</dd>
-                </div>
-              </dl>
+        <button class="finish-button" id="finishWorkout" type="button">Terminer la séance</button>
+        <button class="danger-ghost-button" id="resetSession" type="button">Réinitialiser cette séance</button>
+      </section>
+
+      <section class="screen summary-screen" id="summarySheet" aria-live="polite">
+        <article class="summary-card">
+          <p class="kicker">Bilan de séance</p>
+          <h2 id="summaryTitle">Bravo</h2>
+          <div class="summary-section">
+            <div class="summary-grid">
+              <p><span id="summaryDuration">0 min</span>Durée totale</p>
+              <p><span id="summaryCalories">0 kcal</span>Calories</p>
+              <p><span id="summaryExercises">0</span>Exercices</p>
+              <p><span id="summaryProgressions">0</span>Progression</p>
             </div>
-          </section>
-
-          <section class="history-block" aria-labelledby="weight-title">
-            <div class="weight-heading">
-              <h3 id="weight-title">⚖️ Mon évolution</h3>
-              <p>Le poids varie naturellement d'un jour à l'autre. Regardez plutôt votre évolution sur plusieurs semaines.</p>
-            </div>
-
-            <form class="stack weight-form" id="weight-setup-form">
-              <label>
-                <span>Poids de départ</span>
-                <input type="number" name="startWeight" min="35" max="250" step="0.1" inputmode="decimal" placeholder="95 kg" required />
-              </label>
-              <label>
-                <span>Pesée recommandée</span>
-                <select name="frequencyDays">
-                  <option value="30">Tous les 30 jours (recommandé)</option>
-                  <option value="14">Tous les 14 jours</option>
-                  <option value="7">Tous les 7 jours</option>
-                </select>
-              </label>
-              <button class="primary-action" type="submit">Enregistrer mon suivi</button>
-            </form>
-
-            <div class="weight-card" id="weight-card" hidden>
-              <p class="weight-note">
-                Le poids peut varier d'un jour à l'autre à cause de l'eau, du sel ou de la digestion.
-              </p>
-              <div class="weight-main">
-                <div>
-                  <span>Poids de départ</span>
-                  <strong id="weight-current">-</strong>
-                </div>
-                <div>
-                  <span>Dernière pesée</span>
-                  <strong id="weight-last">-</strong>
-                </div>
-              </div>
-              <label>
-                <span>Fréquence de pesée</span>
-                <select id="weight-frequency">
-                  <option value="30">Tous les 30 jours (recommandé)</option>
-                  <option value="14">Tous les 14 jours</option>
-                  <option value="7">Tous les 7 jours</option>
-                </select>
-              </label>
-              <div class="period-panel" id="period-panel" hidden>
-                <fieldset>
-                  <legend>🌸 Règles en cours ?</legend>
-                  <div class="segmented-control">
-                    <label>
-                      <input type="radio" name="periodActive" value="yes" />
-                      <span>Oui</span>
-                    </label>
-                    <label>
-                      <input type="radio" name="periodActive" value="no" />
-                      <span>Non</span>
-                    </label>
-                  </div>
-                </fieldset>
-                <div class="period-message" id="period-message" hidden>
-                  <p>Pendant les règles, le poids peut temporairement varier à cause de la rétention d'eau et des changements hormonaux.</p>
-                  <p>Une légère prise de poids pendant cette période n'est pas forcément liée à une prise de graisse.</p>
-                </div>
-              </div>
-              <div class="next-weigh-card">
-                <span>⚖️ Prochaine pesée</span>
-                <strong id="next-weigh-date">-</strong>
-              </div>
-              <div class="weigh-due" id="weigh-due" hidden>
-                <p>⚖️ Il est temps de mettre à jour votre poids.</p>
-                <button class="primary-action" type="button" id="show-weight-update">Mettre à jour mon poids</button>
-              </div>
-              <form class="stack weight-form" id="weight-update-form" hidden>
-                <label>
-                  <span>Nouveau poids</span>
-                  <input type="number" name="currentWeight" min="35" max="250" step="0.1" inputmode="decimal" placeholder="92,4 kg" />
-                </label>
-                <button class="primary-action" type="submit">Valider ma pesée</button>
-              </form>
-              <div class="weight-results" id="weight-results" hidden>
-                <div>
-                  <span>Dernière pesée</span>
-                  <strong id="weight-result-current">-</strong>
-                </div>
-                <div>
-                  <span>Évolution</span>
-                  <strong id="weight-result-change">-</strong>
-                </div>
-                <div>
-                  <span>Progression</span>
-                  <strong id="weight-result-total">-</strong>
-                </div>
-                <p id="weight-message">👍 Continuez, la régularité est la clé.</p>
-              </div>
-              <details class="future-panel">
-                <summary>Prévu plus tard</summary>
-                <p>📈 Courbe du poids · 📊 Statistiques mensuelles · 📅 Historique complet des pesées</p>
-              </details>
-            </div>
-          </section>
-        </section>
-
-        <section class="view" id="settings" aria-labelledby="settings-title">
-          <div class="section-heading">
-            <p class="eyebrow">Réglages</p>
-            <h2 id="settings-title">Données locales</h2>
           </div>
-
-          <div class="settings-panel">
-            <p>Les informations restent sur cet appareil via localStorage.</p>
-            <button class="danger-action" type="button" id="reset-button">Reset test</button>
+          <div class="coach-summary">
+            <p id="summaryMessage">Séance enregistrée.</p>
           </div>
-        </section>
-      </main>
+          <button class="primary-button" id="closeSummary" type="button">Retour à l'accueil</button>
+        </article>
+      </section>
 
-      <nav class="bottom-nav" aria-label="Navigation de l'application">
-        <button type="button" data-view-target="profile">
-          <span aria-hidden="true">◎</span>
-          Profil
-        </button>
-        <button type="button" data-view-target="day">
-          <span aria-hidden="true">◷</span>
-          Ma journée
-        </button>
-        <button type="button" data-view-target="history">
-          <span aria-hidden="true">📅</span>
-          Historique
-        </button>
-        <button type="button" data-view-target="settings">
-          <span aria-hidden="true">⚙</span>
-          Réglages
-        </button>
+      <section class="screen exercise-guide-screen" id="exerciseSheet" aria-live="polite">
+        <article class="exercise-demo-card">
+          <button class="icon-button sheet-close" id="closeExerciseSheet" type="button" aria-label="Fermer">×</button>
+          <div class="demo-visual" id="demoVisual"></div>
+          <p class="kicker" id="demoType">Exercice</p>
+          <h2 id="demoTitle">Exercice</h2>
+          <div class="demo-muscles" id="demoMuscles"></div>
+          <div class="demo-block">
+            <h3>Conseils simples</h3>
+            <ul id="demoTips"></ul>
+          </div>
+          <div class="demo-block">
+            <h3>Erreurs à éviter</h3>
+            <ul id="demoMistakes"></ul>
+          </div>
+        </article>
+      </section>
+
+      <section class="screen" id="progressScreen" aria-label="Progression et statistiques">
+        <article class="panel progress-stats-panel">
+          <div class="panel-title">
+            <h3>Progression / Statistiques</h3>
+            <span id="progressPeriod">Programme</span>
+          </div>
+          <div class="summary-grid">
+            <p><span id="statsSessions">0</span>Séances réalisées</p>
+            <p><span id="statsCalories">0 kcal</span>Calories brûlées</p>
+            <p><span id="statsWeightChange">0 kg</span>Évolution poids</p>
+            <p><span id="statsProgressions">0</span>Progressions validées</p>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-title">
+            <h3>Calories par séance</h3>
+            <span>Graphique simple</span>
+          </div>
+          <div class="simple-chart" id="caloriesChart"></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-title">
+            <h3>Historique résumé</h3>
+            <span id="statsHistoryCount">0 séance</span>
+          </div>
+          <div class="history-list" id="statsHistoryList"></div>
+        </article>
+      </section>
+
+      <section class="screen" id="programSummaryScreen" aria-label="Bilan du programme">
+        <article class="panel">
+          <div class="panel-title">
+            <h3>Bilan du programme</h3>
+            <span>⚖️ Poids</span>
+          </div>
+          <div class="summary-grid">
+            <p><span id="programSummarySessions">0</span>Séances réalisées</p>
+            <p><span id="programSummaryCalories">0 kcal</span>Calories brûlées</p>
+            <p><span id="programSummaryProgressions">0</span>Progressions</p>
+            <p><span id="programSummaryWeightChange">0 kg</span>Évolution poids</p>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-title">
+            <h3>Nouvelle pesée</h3>
+            <span id="programSummaryStartWeight">Départ 0 kg</span>
+          </div>
+          <label class="summary-weight-field">Poids actuel
+            <input id="programFinalWeight" type="number" min="20" max="250" step="0.1">
+          </label>
+          <button class="primary-button" id="saveProgramWeight" type="button">Enregistrer le bilan</button>
+          <p id="programSummaryMessage">Entre ton poids pour voir ton évolution.</p>
+        </article>
+      </section>
+
+      <section class="screen" id="profileMenuScreen" aria-label="Profil">
+        <article class="panel profile-panel">
+          <div class="panel-title">
+            <h3>Profil</h3>
+            <span id="profileEvolution">0 kg</span>
+          </div>
+          <form class="profile-edit-form" id="profileEditForm">
+            <label>Prénom
+              <input id="editFirstName" type="text" required>
+            </label>
+            <label>Âge
+              <input id="editAge" type="number" min="12" max="100" required>
+            </label>
+            <label>Poids actuel
+              <input id="editBodyWeight" type="number" min="20" max="250" step="0.1" required>
+            </label>
+            <div class="choice-block">
+              <span>Objectif</span>
+              <div class="choice-cards" id="editGoalChoices"></div>
+            </div>
+            <div class="choice-block">
+              <span>Niveau</span>
+              <div class="choice-cards compact" id="editLevelChoices"></div>
+            </div>
+            <button class="primary-button" type="submit">Enregistrer le profil</button>
+          </form>
+          <div class="goal-advice" id="goalAdvice">Choisis un objectif pour adapter les conseils.</div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-title">
+            <h3>Évolution du poids</h3>
+            <span id="weightHistoryCount">0 entrée</span>
+          </div>
+          <div class="profile-stats">
+            <p><span id="startWeight">0 kg</span>Départ</p>
+            <p><span id="currentWeight">0 kg</span>Actuel</p>
+            <p><span id="totalWeightChange">0 kg</span>Évolution</p>
+          </div>
+          <div class="history-list" id="weightHistoryList"></div>
+        </article>
+
+        <article class="panel danger-panel">
+          <div class="panel-title">
+            <h3>Réinitialisation</h3>
+            <span>Attention</span>
+          </div>
+          <p>Le reset complet efface le profil, l'historique, les poids, les calories et les progressions.</p>
+          <button class="danger-button" id="resetAllData" type="button">Reset complet profil</button>
+        </article>
+      </section>
+
+      <section class="screen" id="calendarScreen" aria-label="Calendrier">
+        <article class="panel calendar-panel">
+          <div class="panel-title">
+            <button class="icon-button" id="previousMonth" type="button" aria-label="Mois précédent">‹</button>
+            <h3 id="calendarTitle">Calendrier</h3>
+            <button class="icon-button" id="nextMonthButton" type="button" aria-label="Mois suivant">›</button>
+          </div>
+          <div class="calendar-weekdays">
+            <span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span>
+          </div>
+          <div class="calendar-grid" id="calendarGrid"></div>
+        </article>
+
+        <article class="panel day-detail-panel">
+          <div class="panel-title">
+            <h3 id="selectedDayTitle">Aujourd'hui</h3>
+            <span id="selectedDayStatus">À venir</span>
+          </div>
+          <p id="missedWorkoutMessage" class="calendar-message hidden">Pas grave, on reprend là où tu t’étais arrêté.</p>
+          <div class="day-detail" id="dayDetail"></div>
+          <div class="calendar-actions">
+            <button class="ghost-button" id="delayWorkoutDate" type="button">Décaler la séance</button>
+          </div>
+          <div class="delay-box hidden" id="delayBox">
+            <label>Nouvelle date
+              <input id="delayDateInput" type="date">
+            </label>
+            <button class="primary-button" id="confirmDelayWorkout" type="button">Confirmer le décalage</button>
+          </div>
+          <p class="calendar-confirmation hidden" id="calendarConfirmation">Séance décalée avec succès.</p>
+        </article>
+      </section>
+
+      <nav class="bottom-nav" aria-label="Navigation">
+        <button class="nav-item active" type="button" data-screen="homeScreen"><span>⌂</span>Accueil</button>
+        <button class="nav-item" type="button" data-screen="sessionScreen"><span>▣</span>Séance</button>
+        <button class="nav-item" type="button" data-screen="calendarScreen"><span>□</span>Calendrier</button>
+        <button class="nav-item" type="button" data-screen="profileMenuScreen"><span>◎</span>Profil</button>
       </nav>
-    </div>
+    </main>
 
-    <script src="app.js?v=11" defer></script>
+    <script src="app.js"></script>
   </body>
 </html>
