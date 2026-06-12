@@ -35,10 +35,6 @@ const voiceStatus = document.querySelector("#voice-status");
 const mealDescription = mealForm.elements.description;
 const selectedMealEyebrow = document.querySelector("#selected-meal-eyebrow");
 const selectedMealTitle = document.querySelector("#selected-meal-title");
-const portionLegend = document.querySelector("#portion-legend");
-const portionLightLabel = document.querySelector("#portion-light-label");
-const portionNormalLabel = document.querySelector("#portion-normal-label");
-const portionHeartyLabel = document.querySelector("#portion-hearty-label");
 const mealSubmitButton = document.querySelector("#meal-submit-button");
 const mealEstimateStatus = document.querySelector("#meal-estimate-status");
 const barcodeScanInput = document.querySelector("#barcode-scan-input");
@@ -127,20 +123,6 @@ const LOCAL_NUTRITION_DATABASE = [
 
 const HOMEMADE_DISHES = ["lasagnes maison", "gratin maison", "couscous maison", "quiche maison", "plat maison"];
 const INDUSTRIAL_PRODUCT_TERMS = ["coca", "coca cola", "kinder bueno", "danette", "chips", "biscuits", "biscuit", "soda", "boisson", "barre chocolatee", "cereales", "yaourt de marque", "plat prepare"];
-
-const portionLabels = {
-  light: "Léger",
-  normal: "Normal",
-  hearty: "Copieux",
-  large: "Copieux"
-};
-
-const pleasurePortionLabels = {
-  light: "Petit plaisir",
-  normal: "Plaisir moyen",
-  hearty: "Gros plaisir",
-  large: "Gros plaisir"
-};
 
 const activityFactors = {
   low: 1.3,
@@ -279,7 +261,6 @@ function bindMeals() {
     const formData = new FormData(mealForm);
     const description = String(formData.get("description")).trim();
     const mealType = formData.get("mealType") || "breakfast";
-    const portion = formData.get("portion");
     console.log("mealType:", mealType);
     console.log("description:", description);
 
@@ -292,7 +273,7 @@ function bindMeals() {
     mealSubmitButton.disabled = true;
     mealSubmitButton.textContent = "Ajout...";
 
-    const estimate = estimateMealCalories(description, portion);
+    const estimate = estimateMealCalories(description);
     console.log("calories:", estimate.calories || 0);
 
     mealSubmitButton.disabled = false;
@@ -316,7 +297,6 @@ function bindMeals() {
       id: createId(),
       mealType,
       description,
-      portion,
       calories: estimate.calories,
       estimateDetails: estimate.details,
       usedAveragePortion: estimate.usedAveragePortion,
@@ -325,7 +305,6 @@ function bindMeals() {
 
     mealForm.reset();
     mealForm.elements.mealType.value = mealType;
-    mealForm.elements.portion.value = "normal";
     mealForm.hidden = true;
     resetScannedProduct();
     saveState();
@@ -425,10 +404,6 @@ function configureMealForm(mealType) {
   selectedMealEyebrow.textContent = isPleasure ? "Écart / plaisir" : "Repas";
   selectedMealTitle.textContent = mealLabels[mealType] || mealLabels.breakfast;
   mealDescription.placeholder = mealPlaceholders[mealType] || mealPlaceholders.lunch;
-  portionLegend.textContent = isPleasure ? "Taille du plaisir" : "Taille du repas";
-  portionLightLabel.textContent = isPleasure ? "Petit plaisir" : "Léger";
-  portionNormalLabel.textContent = isPleasure ? "Moyen plaisir" : "Normal";
-  portionHeartyLabel.textContent = isPleasure ? "Gros plaisir" : "Copieux";
   mealSubmitButton.textContent = "Ajouter ce repas";
   setMealEstimateStatus("Estimation approximative.", "default");
 }
@@ -553,7 +528,6 @@ function addScannedProductToDay() {
     id: createId(),
     mealType,
     description: `${currentScannedProduct.name}${currentScannedProduct.brands ? ` - ${currentScannedProduct.brands}` : ""}`,
-    portion: "normal",
     calories: currentProductQuantity.calories,
     source: "barcode",
     estimateDetails: `${Math.round(currentProductQuantity.quantity)} ${currentProductQuantity.unit}, ${Math.round(currentScannedProduct.kcal100)} kcal/100 ${currentScannedProduct.unit}, Open Food Facts. Estimation approximative.`,
@@ -562,7 +536,6 @@ function addScannedProductToDay() {
 
   mealForm.reset();
   mealForm.elements.mealType.value = mealType;
-  mealForm.elements.portion.value = "normal";
   mealForm.hidden = true;
   resetScannedProduct();
   saveState();
@@ -603,12 +576,12 @@ function calculateProfile(profile) {
   };
 }
 
-function estimateMealCalories(description, portion) {
-  const localEstimate = estimateFromLocalNutrition(description, portion);
+function estimateMealCalories(description) {
+  const localEstimate = estimateFromLocalNutrition(description);
   return localEstimate;
 }
 
-function estimateFromLocalNutrition(description, portion) {
+function estimateFromLocalNutrition(description) {
   const matches = [];
   const unknownSegments = [];
   const homemadeSegments = [];
@@ -898,7 +871,7 @@ function renderMeals() {
     item.innerHTML = `
       <div>
         <strong>${escapeHtml(meal.description)}</strong>
-        <small>${getPortionLabel(meal)} · ${formatCalories(meal.calories)}</small>
+        <small>${formatCalories(meal.calories)}</small>
         ${meal.usedAveragePortion ? '<small class="average-portion-note">Quantité non précisée, portion moyenne utilisée.</small>' : ""}
         <small class="nutrition-detail">${escapeHtml(meal.estimateDetails || "Estimation approximative.")}</small>
       </div>
@@ -1285,11 +1258,6 @@ function toDateKey(date) {
 
 function sumCalories(entries) {
   return entries.reduce((total, entry) => total + Number(entry.calories || 0), 0);
-}
-
-function getPortionLabel(meal) {
-  const labels = meal.mealType === "pleasure" ? pleasurePortionLabels : portionLabels;
-  return labels[meal.portion] || labels.normal || "Normal";
 }
 
 function formatCalories(value) {
