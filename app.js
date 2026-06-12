@@ -103,13 +103,16 @@ const LOCAL_NUTRITION_DATABASE = [
   { name: "poulet cuit", aliases: ["poulet cuit", "poulet"], kcal100: 165, defaultGrams: 120 },
   { name: "dinde cuite", aliases: ["dinde cuite", "dinde"], kcal100: 150, defaultGrams: 120 },
   { name: "steak haché cuit", aliases: ["steak hache cuit", "steak hache", "boeuf hache"], kcal100: 250, defaultGrams: 100 },
+  { name: "viande cuite", aliases: ["viande cuite", "viande"], kcal100: 220, defaultGrams: 150 },
   { name: "poisson blanc", aliases: ["poisson blanc", "cabillaud", "colin"], kcal100: 90, defaultGrams: 120 },
   { name: "saumon", aliases: ["saumon"], kcal100: 200, defaultGrams: 120 },
   { name: "thon au naturel", aliases: ["thon au naturel", "thon nature", "thon"], kcal100: 116, defaultGrams: 100 },
   { name: "skyr nature", aliases: ["skyr nature", "skyr"], kcal100: 60, defaultGrams: 150 },
   { name: "fromage blanc 0%", aliases: ["fromage blanc 0", "fromage blanc"], kcal100: 50, defaultGrams: 200 },
   { name: "yaourt nature", aliases: ["yaourt nature", "yaourt"], kcal100: 65, defaultGrams: 125 },
+  { name: "fromage", aliases: ["fromage rape", "fromage râpé", "fromage"], kcal100: 350, defaultGrams: 30 },
   { name: "lait demi-écrémé", aliases: ["lait demi ecreme", "lait"], kcal100: 47, defaultGrams: 250, unit: "ml", portionWeights: { verre: 250, portion: 250 } },
+  { name: "légumes cuits", aliases: ["legumes cuits", "legumes"], kcal100: 35, defaultGrams: 150 },
   { name: "carotte cuite", aliases: ["carotte cuite", "carottes cuites", "carotte", "carottes"], kcal100: 35, defaultGrams: 150 },
   { name: "courgette cuite", aliases: ["courgette cuite", "courgettes cuites", "courgette", "courgettes"], kcal100: 17, defaultGrams: 150 },
   { name: "brocoli cuit", aliases: ["brocoli cuit", "brocolis cuits", "brocoli", "brocolis"], kcal100: 29, defaultGrams: 150 },
@@ -123,7 +126,7 @@ const LOCAL_NUTRITION_DATABASE = [
 ];
 
 const HOMEMADE_DISHES = ["lasagnes maison", "gratin maison", "couscous maison", "quiche maison", "plat maison"];
-const INDUSTRIAL_PRODUCT_TERMS = ["coca", "coca cola", "kinder bueno", "danette", "chips", "biscuits", "biscuit", "soda", "barre chocolatee", "plat prepare"];
+const INDUSTRIAL_PRODUCT_TERMS = ["coca", "coca cola", "kinder bueno", "danette", "chips", "biscuits", "biscuit", "soda", "boisson", "barre chocolatee", "cereales", "yaourt de marque", "plat prepare"];
 
 const portionLabels = {
   light: "Léger",
@@ -287,7 +290,7 @@ function bindMeals() {
 
     setMealEstimateStatus("Estimation approximative.", "default");
     mealSubmitButton.disabled = true;
-    mealSubmitButton.textContent = "Estimation...";
+    mealSubmitButton.textContent = "Ajout...";
 
     const estimate = estimateMealCalories(description, portion);
     console.log("calories:", estimate.calories || 0);
@@ -298,12 +301,12 @@ function bindMeals() {
     if (!estimate.found) {
       const unknown = estimate.unknown?.join(", ");
       const messages = {
-        partial: `Aliment non trouvé : ${unknown || "nom imprécis"}. Détaillez chaque aliment avec sa quantité.`,
+        partial: `Certains éléments n'ont pas été reconnus : ${unknown || "nom imprécis"}. Précisez leur nom si nécessaire.`,
         homemade: "Plat maison détecté. Détailler les ingrédients : indiquez chaque ingrédient et sa quantité. Sans détail, aucune calorie fiable n'est ajoutée. Estimation approximative.",
         industrial: "Produit industriel détecté. Utilisez « Scanner un produit » pour récupérer les données réelles Open Food Facts."
       };
       setMealEstimateStatus(
-        messages[estimate.reason] || "Aliment non trouvé. Ajoutez une quantité ou utilisez le scanner pour un produit industriel.",
+        messages[estimate.reason] || "Aucun aliment reconnu. Précisez le nom ou utilisez le scanner pour un produit industriel.",
         "error"
       );
       return;
@@ -426,7 +429,7 @@ function configureMealForm(mealType) {
   portionLightLabel.textContent = isPleasure ? "Petit plaisir" : "Léger";
   portionNormalLabel.textContent = isPleasure ? "Moyen plaisir" : "Normal";
   portionHeartyLabel.textContent = isPleasure ? "Gros plaisir" : "Copieux";
-  mealSubmitButton.textContent = "Estimer mon repas";
+  mealSubmitButton.textContent = "Ajouter ce repas";
   setMealEstimateStatus("Estimation approximative.", "default");
 }
 
@@ -777,8 +780,12 @@ function extractExplicitAmount(text, alias, expectedUnit) {
   const unit = "(kg|kilogramme|kilogrammes|g|gr|gramme|grammes|ml|cl|l|litre|litres)";
   const before = text.match(new RegExp(`(\\d+(?:[,.]\\d+)?)\\s*${unit}\\s*(?:de|d'|du|des)?\\s*${escapedAlias}`));
   const after = text.match(new RegExp(`${escapedAlias}\\s*(?:de|d'|du|des)?\\s*(\\d+(?:[,.]\\d+)?)\\s*${unit}`));
-  const value = before?.[1] || after?.[1];
-  const valueUnit = before?.[2] || after?.[2];
+  const afterHasFollowingFood = after
+    ? findFoodMatches(text.slice((after.index || 0) + after[0].length)).length > 0
+    : false;
+  const acceptedAfter = afterHasFollowingFood ? null : after;
+  const value = before?.[1] || acceptedAfter?.[1];
+  const valueUnit = before?.[2] || acceptedAfter?.[2];
   if (!value) return null;
   return convertExplicitAmount(Number(value.replace(",", ".")), valueUnit, expectedUnit);
 }
