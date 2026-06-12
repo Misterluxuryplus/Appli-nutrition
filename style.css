@@ -1023,6 +1023,12 @@ textarea:focus {
   font-weight: 850;
 }
 
+.meal-recognition-warning {
+  margin-top: 5px;
+  color: #8a5a18 !important;
+  line-height: 1.4;
+}
+
 .entry-list button {
   flex: 0 0 auto;
   width: 36px;

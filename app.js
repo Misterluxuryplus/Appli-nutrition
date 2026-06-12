@@ -90,7 +90,7 @@ const LOCAL_NUTRITION_DATABASE = [
   { name: "orange", aliases: ["orange", "oranges"], kcal100: 47, defaultGrams: 180 },
   { name: "kiwi", aliases: ["kiwi", "kiwis"], kcal100: 61, defaultGrams: 80 },
   { name: "riz cuit", aliases: ["riz cuit", "riz"], kcal100: 145, defaultGrams: 150 },
-  { name: "pâtes cuites", aliases: ["pates cuites", "pates", "pasta"], kcal100: 150, defaultGrams: 150 },
+  { name: "pâtes cuites", aliases: ["pates cuites", "pate cuite", "pates", "pate", "pasta"], kcal100: 150, defaultGrams: 150 },
   { name: "pomme de terre cuite", aliases: ["pomme de terre cuite", "pommes de terre", "patate"], kcal100: 85, defaultGrams: 200 },
   { name: "semoule cuite", aliases: ["semoule cuite", "semoule"], kcal100: 120, defaultGrams: 120 },
   { name: "pain complet", aliases: ["pain complet", "tranche de pain complet", "tartine complete"], kcal100: 250, defaultGrams: 60, portionWeights: { tranche: 30, portion: 60 } },
@@ -106,9 +106,9 @@ const LOCAL_NUTRITION_DATABASE = [
   { name: "skyr nature", aliases: ["skyr nature", "skyr"], kcal100: 60, defaultGrams: 150 },
   { name: "fromage blanc 0%", aliases: ["fromage blanc 0", "fromage blanc"], kcal100: 50, defaultGrams: 200 },
   { name: "yaourt nature", aliases: ["yaourt nature", "yaourt"], kcal100: 65, defaultGrams: 125 },
-  { name: "fromage", aliases: ["fromage rape", "fromage râpé", "fromage"], kcal100: 350, defaultGrams: 30 },
+  { name: "fromage moyen", aliases: ["fromage rape", "fromage râpé", "fromage"], kcal100: 350, defaultGrams: 30 },
   { name: "lait demi-écrémé", aliases: ["lait demi ecreme", "lait"], kcal100: 47, defaultGrams: 250, unit: "ml", portionWeights: { verre: 250, portion: 250 } },
-  { name: "légumes cuits", aliases: ["legumes cuits", "legumes"], kcal100: 35, defaultGrams: 150 },
+  { name: "légumes mélangés", aliases: ["legumes melanges", "legume melange", "legumes cuits", "legume cuit", "legumes", "legume"], kcal100: 35, defaultGrams: 150 },
   { name: "carotte cuite", aliases: ["carotte cuite", "carottes cuites", "carotte", "carottes"], kcal100: 35, defaultGrams: 150 },
   { name: "courgette cuite", aliases: ["courgette cuite", "courgettes cuites", "courgette", "courgettes"], kcal100: 17, defaultGrams: 150 },
   { name: "brocoli cuit", aliases: ["brocoli cuit", "brocolis cuits", "brocoli", "brocolis"], kcal100: 29, defaultGrams: 150 },
@@ -300,6 +300,7 @@ function bindMeals() {
       calories: estimate.calories,
       estimateDetails: estimate.details,
       usedAveragePortion: estimate.usedAveragePortion,
+      recognitionWarning: estimate.recognitionWarning,
       createdAt: new Date().toISOString()
     });
 
@@ -627,18 +628,18 @@ function estimateFromLocalNutrition(description) {
     });
   });
 
-  if (homemadeSegments.length && !matches.length) {
-    return { found: false, reason: "homemade", unknown: homemadeSegments };
-  }
-  if (industrialSegments.length) {
-    return { found: false, reason: "industrial", unknown: industrialSegments };
-  }
-  if (unknownSegments.length) {
+  if (!matches.length) {
+    if (homemadeSegments.length) return { found: false, reason: "homemade", unknown: homemadeSegments };
+    if (industrialSegments.length) return { found: false, reason: "industrial", unknown: industrialSegments };
     return { found: false, reason: "partial", unknown: unknownSegments };
   }
-  if (!matches.length) return { found: false };
 
   const total = Math.round(matches.reduce((sum, item) => sum + item.calories, 0));
+  const warnings = [
+    ...unknownSegments.map((segment) => `Non reconnu : ${segment}`),
+    ...homemadeSegments.map((segment) => `À détailler : ${segment}`),
+    ...industrialSegments.map((segment) => `À scanner : ${segment}`)
+  ];
   const details = matches
     .map((item) => {
       if (item.usesUnitCalories) {
@@ -654,6 +655,7 @@ function estimateFromLocalNutrition(description) {
     found: true,
     calories: total,
     usedAveragePortion: matches.some((item) => item.usedAveragePortion),
+    recognitionWarning: warnings.join(" · "),
     details: `${details} · Total = ${formatCalories(total)}. Estimation approximative, base locale inspirée de Ciqual/ANSES.`
   };
 }
@@ -710,8 +712,8 @@ function parseAmountWithUnit(value) {
 
 function splitFoodSegments(description) {
   return String(description)
-    .split(/\r?\n|,|;|\+/)
-    .map((segment) => normalizeText(segment).trim())
+    .split(/\r?\n|,|;|\+|\.(?=\s|$)|\s+et\s+/i)
+    .map((segment) => normalizeNutritionText(segment))
     .filter(Boolean);
 }
 
@@ -874,6 +876,7 @@ function renderMeals() {
         <p class="meal-entry-description">${escapeHtml(meal.description || "Repas ajouté")}</p>
         <strong>🔥 Calories estimées :</strong>
         <span class="meal-entry-calories">${formatCalories(meal.calories)}</span>
+        ${meal.recognitionWarning ? `<small class="meal-recognition-warning">${escapeHtml(meal.recognitionWarning)}</small>` : ""}
       </div>
       <button type="button" aria-label="Supprimer ce repas" data-delete-meal="${meal.id}">×</button>
     `;
@@ -1312,6 +1315,14 @@ function normalizeText(text) {
     .replace(/æ/g, "ae")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
+}
+
+function normalizeNutritionText(text) {
+  return normalizeText(text)
+    .replace(/(\d)(?=(?:gr|g|grammes?)\b)/g, "$1 ")
+    .replace(/\b(?:gr|grammes?)\b/g, "g")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function escapeHtml(value) {
