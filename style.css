@@ -1003,6 +1003,26 @@ textarea:focus {
   display: block;
 }
 
+.meal-entry-summary {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.meal-entry-description {
+  margin: 0 0 8px;
+  color: var(--muted);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
+.meal-entry-calories {
+  color: var(--text) !important;
+  font-size: 1.35rem;
+  font-weight: 850;
+}
+
 .entry-list button {
   flex: 0 0 auto;
   width: 36px;

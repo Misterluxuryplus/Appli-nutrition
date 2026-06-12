@@ -869,9 +869,11 @@ function renderMeals() {
     if (!list) return;
     const item = document.createElement("li");
     item.innerHTML = `
-      <div>
-        <strong>🍽️ Calories estimées :</strong>
-        <span>${formatCalories(meal.calories)}</span>
+      <div class="meal-entry-summary">
+        <strong>Repas saisi :</strong>
+        <p class="meal-entry-description">${escapeHtml(meal.description || "Repas ajouté")}</p>
+        <strong>🔥 Calories estimées :</strong>
+        <span class="meal-entry-calories">${formatCalories(meal.calories)}</span>
       </div>
       <button type="button" aria-label="Supprimer ce repas" data-delete-meal="${meal.id}">×</button>
     `;
