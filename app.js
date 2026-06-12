@@ -870,10 +870,8 @@ function renderMeals() {
     const item = document.createElement("li");
     item.innerHTML = `
       <div>
-        <strong>${escapeHtml(meal.description)}</strong>
-        <small>${formatCalories(meal.calories)}</small>
-        ${meal.usedAveragePortion ? '<small class="average-portion-note">Quantité non précisée, portion moyenne utilisée.</small>' : ""}
-        <small class="nutrition-detail">${escapeHtml(meal.estimateDetails || "Estimation approximative.")}</small>
+        <strong>🍽️ Calories estimées :</strong>
+        <span>${formatCalories(meal.calories)}</span>
       </div>
       <button type="button" aria-label="Supprimer ce repas" data-delete-meal="${meal.id}">×</button>
     `;

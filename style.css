@@ -1003,18 +1003,6 @@ textarea:focus {
   display: block;
 }
 
-.nutrition-detail {
-  max-width: 52ch;
-  margin-top: 8px;
-  line-height: 1.45;
-}
-
-.average-portion-note {
-  margin-top: 8px;
-  color: var(--primary) !important;
-  font-weight: 800;
-}
-
 .entry-list button {
   flex: 0 0 auto;
   width: 36px;
